@@ -1,201 +1,264 @@
-import React from 'react';
-import { CheckCircle, Clock, Calendar, Activity, ArrowUpRight } from 'lucide-react';
-import { useStats, useActivities } from '../hooks/useApi';
+import { useState, useEffect } from 'react';
+import { 
+  CheckCircle2, 
+  Clock, 
+  Calendar, 
+  TrendingUp, 
+  Sparkles,
+  ArrowUpRight,
+  MoreHorizontal,
+  Zap,
+  Target
+} from 'lucide-react';
+import { useStats, useActivities, useTasks } from '../hooks/useApi';
+import { formatDistanceToNow } from 'date-fns';
 
-const MetricCard = ({ title, value, icon: Icon, color, subtitle }) => (
-  <div className="card p-5">
-    <div className="flex items-start justify-between">
-      <div>
-        <p className="text-xs font-medium text-[#737373] uppercase tracking-wider">{title}</p>
-        <p className="text-2xl font-semibold mt-1">{value}</p>
-        {subtitle && <p className="text-xs text-[#737373] mt-1">{subtitle}</p>}
-      </div>
-      <div className={`p-2.5 rounded-lg ${color}`}>
-        <Icon size={20} />
-      </div>
-    </div>
-  </div>
-);
-
-const getStatusColor = (status) => {
-  switch (status) {
-    case 'completed': return 'bg-[#22c55e]';
-    case 'active': return 'bg-[#22c55e] animate-pulse';
-    case 'pending': return 'bg-[#f59e0b]';
-    case 'error': return 'bg-[#ef4444]';
-    default: return 'bg-[#737373]';
-  }
-};
-
-const getStatusLabel = (status) => {
-  switch (status) {
-    case 'completed': return 'Completed';
-    case 'active': return 'In Progress';
-    case 'pending': return 'Pending';
-    case 'error': return 'Failed';
-    default: return 'Idle';
-  }
-};
-
-export default function Dashboard() {
-  const { stats } = useStats();
-  const { activities } = useActivities();
-
-  const formatTime = (timestamp) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diff = Math.floor((now - date) / 1000 / 60);
-    
-    if (diff < 1) return 'Just now';
-    if (diff < 60) return `${diff}m ago`;
-    if (diff < 1440) return `${Math.floor(diff / 60)}h ago`;
-    return date.toLocaleDateString();
+const MetricCard = ({ title, value, subtitle, icon: Icon, trend, color = 'amber' }) => {
+  const colorClasses = {
+    amber: 'from-[#d4a574]/20 to-[#d4a574]/5 text-[#d4a574]',
+    navy: 'from-[#1e3a5f]/40 to-[#1e3a5f]/10 text-blue-400',
+    green: 'from-green-500/20 to-green-500/5 text-green-400',
+    purple: 'from-purple-500/20 to-purple-500/5 text-purple-400',
   };
 
   return (
-    <div className="p-4 lg:p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="group relative overflow-hidden rounded-xl bg-[#111] border border-white/[0.06] p-5 hover:border-white/[0.1] transition-all duration-300 hover:-translate-y-0.5">
+      <div className={`absolute inset-0 bg-gradient-to-br ${colorClasses[color]} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+      
+      <div className="relative flex items-start justify-between">
         <div>
-          <h1 className="text-xl font-semibold">Dashboard</h1>
-          <p className="text-sm text-[#737373] mt-0.5">Welcome back. Here's your command center overview.</p>
+          <p className="text-xs font-medium text-white/40 uppercase tracking-wider mb-1">{title}</p>
+          <h3 className="text-2xl font-semibold text-white mb-1">{value}</h3>
+          {subtitle && (
+            <p className="text-xs text-white/50">{subtitle}</p>
+          )}
         </div>
-        <button className="btn-primary flex items-center gap-2 text-sm self-start sm:self-auto">
-          View Reports
-          <ArrowUpRight size={16} />
-        </button>
+        
+        <div className={`p-2.5 rounded-lg bg-gradient-to-br ${colorClasses[color]}`}>
+          <Icon className="w-5 h-5" />
+        </div>
+      </div>
+      
+      {trend && (
+        <div className="relative mt-4 flex items-center gap-1.5 text-xs">
+          <ArrowUpRight className="w-3.5 h-3.5 text-green-400" />
+          <span className="text-green-400 font-medium">{trend}</span>
+          <span className="text-white/30">vs last week</span>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const ActivityItem = ({ activity }) => {
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'completed': return <CheckCircle2 className="w-3.5 h-3.5 text-green-400" />;
+      case 'pending': return <Clock className="w-3.5 h-3.5 text-amber-400" />;
+      default: return <Zap className="w-3.5 h-3.5 text-blue-400" />;
+    }
+  };
+
+  return (
+    <div className="flex items-start gap-3 py-3 group">
+      <div className="mt-0.5 p-1.5 rounded-md bg-white/[0.03] group-hover:bg-white/[0.06] transition-colors">
+        {getStatusIcon(activity.status)}
+      </div>
+      
+      <div className="flex-1 min-w-0">
+        <p className="text-sm text-white/80 group-hover:text-white transition-colors">
+          {activity.action}
+        </p>
+        <div className="flex items-center gap-2 mt-0.5">
+          <span className="text-xs text-[#d4a574]">{activity.agent}</span>
+          <span className="text-xs text-white/20">•</span>
+          <span className="text-xs text-white/40">
+            {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const TaskItem = ({ task }) => {
+  const priorityColors = {
+    urgent: 'bg-red-500/10 text-red-400 border-red-500/20',
+    high: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+    medium: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+    low: 'bg-white/5 text-white/50 border-white/10',
+  };
+
+  return (
+    <div className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.02] hover:bg-white/[0.04] border border-transparent hover:border-white/[0.06] transition-all cursor-pointer group">
+      <div className={`w-2 h-2 rounded-full ${
+        task.status === 'done' ? 'bg-green-400' : 
+        task.status === 'in-progress' ? 'bg-amber-400' : 'bg-white/20'
+      }`} />
+      
+      <div className="flex-1 min-w-0">
+        <p className={`text-sm truncate ${task.status === 'done' ? 'text-white/40 line-through' : 'text-white/90'}`}>
+          {task.title}
+        </p>
+        <p className="text-xs text-white/40 mt-0.5">{task.project}</p>
+      </div>
+      
+      <span className={`text-[10px] px-2 py-0.5 rounded-full border ${priorityColors[task.priority]}`}>
+        {task.priority}
+      </span>
+    </div>
+  );
+};
+
+const Dashboard = () => {
+  const { stats } = useStats();
+  const { activities } = useActivities();
+  const { tasks } = useTasks();
+
+  const urgentTasks = tasks.filter(t => t.priority === 'urgent' && t.status !== 'done').slice(0, 3);
+
+  return (
+    <div className="p-4 lg:p-8 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-2">
+          <Sparkles className="w-4 h-4 text-[#d4a574]" />
+          <span className="text-xs font-medium text-[#d4a574] uppercase tracking-wider">Dashboard</span>
+        </div>
+        <h1 className="text-2xl lg:text-3xl font-semibold text-white mb-2">
+          Good morning, Julz
+        </h1>
+        <p className="text-white/50">
+          Here's what's happening with your missions today.
+        </p>
       </div>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <MetricCard
           title="Active Tasks"
           value={stats.activeTasks}
-          icon={CheckCircle}
-          color="bg-[#22c55e]/10 text-[#22c55e]"
           subtitle="Across all projects"
+          icon={Target}
+          trend="+12%"
+          color="amber"
         />
-        
         <MetricCard
           title="Content Pipeline"
           value={stats.contentPipeline}
-          icon={Clock}
-          color="bg-[#3b82f6]/10 text-[#3b82f6]"
           subtitle="In production"
-        />
-        
-        <MetricCard
-          title="Upcoming (48h)"
-          value={stats.upcoming48h}
           icon={Calendar}
-          color="bg-[#8b5cf6]/10 text-[#8b5cf6]"
-          subtitle="Tasks due soon"
+          color="navy"
         />
-        
         <MetricCard
-          title="Agent Status"
+          title="Due Soon"
+          value={stats.upcoming48h}
+          subtitle="Next 48 hours"
+          icon={Clock}
+          color="purple"
+        />
+        <MetricCard
+          title="Agent Activity"
           value={stats.agentActivity}
-          icon={Activity}
-          color="bg-[#d4a574]/10 text-[#d4a574]"
           subtitle="Monday is active"
+          icon={TrendingUp}
+          color="green"
         />
       </div>
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Activity Feed */}
-        <div className="lg:col-span-2 card">
-          <div className="p-5 border-b border-[#222] flex items-center justify-between">
-            <div>
-              <h2 className="font-semibold">Recent Activity</h2>
-              <p className="text-xs text-[#737373] mt-0.5">Live updates from your AI team</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#22c55e] animate-pulse"></span>
-              <span className="text-xs text-[#22c55e]">Live</span>
-            </div>
-          </div>
-          
-          <div className="p-2">
-            {activities.slice(0, 8).map((activity, idx) => (
-              <div 
-                key={activity.id} 
-                className={`flex items-start gap-4 p-3 rounded-lg hover:bg-[#1a1a1a] transition-colors ${idx !== activities.length - 1 ? '' : ''}`}
-              >
-                <div className="relative mt-0.5">
-                  <div className={`w-2.5 h-2.5 rounded-full ${getStatusColor(activity.status)}`}></div>
-                  {idx !== 7 && (
-                    <div className="absolute top-3 left-1 w-px h-full bg-[#262626]"></div>
-                  )}
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">{activity.action}</p>
-                  <div className="flex items-center gap-3 mt-1">
-                    <span className="text-xs text-[#737373]">{activity.agent}</span>
-                    <span className="w-1 h-1 rounded-full bg-[#333]"></span>
-                    <span className="text-xs text-[#737373]">{formatTime(activity.created_at)}</span>
-                    <span className="w-1 h-1 rounded-full bg-[#333]"></span>
-                    <span className={`text-xs ${activity.status === 'completed' ? 'text-[#22c55e]' : activity.status === 'pending' ? 'text-[#f59e0b]' : 'text-[#737373]'}`}>
-                      {getStatusLabel(activity.status)}
-                    </span>
-                  </div>
-                </div>
+        <div className="lg:col-span-2">
+          <div className="rounded-xl bg-[#111] border border-white/[0.06] overflow-hidden">
+            <div className="px-5 py-4 border-b border-white/[0.06] flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-semibold text-white">Recent Activity</h2>
+                <p className="text-xs text-white/40 mt-0.5">Latest actions from your AI team</p>
               </div>
-            ))}
+              <button className="p-2 rounded-lg hover:bg-white/[0.05] text-white/40 hover:text-white transition-colors">
+                <MoreHorizontal className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <div className="p-2">
+              {activities.slice(0, 6).map((activity) => (
+                <ActivityItem key={activity.id} activity={activity} />
+              ))}
+            </div>
+            
+            <div className="px-5 py-3 border-t border-white/[0.06]">
+              <button className="text-xs text-[#d4a574] hover:text-[#e8c4a0] transition-colors font-medium">
+                View all activity →
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Side Panel */}
-        <div className="space-y-4">
+        {/* Sidebar Content */}
+        <div className="space-y-6">
           {/* Quick Stats */}
-          <div className="card p-5">
-            <h3 className="font-semibold mb-4">Today's Overview</h3>
-            
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-[#1e3a5f]/30 flex items-center justify-center">
-                    <CheckCircle size={18} className="text-[#d4a574]" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Tasks Completed</p>
-                    <p className="text-xs text-[#737373]">5 of 12 done</p>
-                  </div>
-                </div>
-                <span className="text-lg font-semibold">42%</span>
+          <div className="rounded-xl bg-gradient-to-br from-[#1e3a5f]/20 to-[#0a0a0a] border border-[#1e3a5f]/30 p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+              <span className="text-xs font-medium text-white/70">System Status</span>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-white/50">Backend</span>
+                <span className="text-green-400">Online</span>
               </div>
-              
-              <div className="w-full bg-[#1a1a1a] rounded-full h-2">
-                <div className="bg-[#d4a574] h-2 rounded-full" style={{ width: '42%' }}></div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-white/50">Database</span>
+                <span className="text-green-400">Connected</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-white/50">Last Sync</span>
+                <span className="text-white/70">Just now</span>
               </div>
             </div>
           </div>
 
-          {/* Team Status */}
-          <div className="card p-5">
-            <h3 className="font-semibold mb-4">AI Team Status</h3>
-            
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <div className="w-10 h-10 rounded-full bg-[#1e3a5f] flex items-center justify-center text-sm font-semibold">M</div>
-                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-[#22c55e] rounded-full border-2 border-[#1a1a1a]"></div>
-                </div>
+          {/* Priority Tasks */}
+          {urgentTasks.length > 0 && (
+            <div className="rounded-xl bg-[#111] border border-white/[0.06] overflow-hidden">
+              <div className="px-5 py-4 border-b border-white/[0.06]">
+                <h2 className="text-sm font-semibold text-white">Priority Tasks</h2>
+                <p className="text-xs text-white/40 mt-0.5">Needs attention</p>
+              </div>
+              <div className="p-2 space-y-1">
+                {urgentTasks.map((task) => (
+                  <TaskItem key={task.id} task={task} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Today's Schedule */}
+          <div className="rounded-xl bg-[#111] border border-white/[0.06] overflow-hidden">
+            <div className="px-5 py-4 border-b border-white/[0.06]">
+              <h2 className="text-sm font-semibold text-white">Today's Schedule</h2>
+            </div>
+            <div className="p-4 space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="text-xs text-white/30 w-12">7:00 AM</div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium">Monday</p>
-                  <p className="text-xs text-[#22c55e]">Online — Working</p>
+                  <p className="text-sm text-white/70">Weather Check</p>
+                  <p className="text-xs text-white/40">Auto-run</p>
                 </div>
               </div>
-              
-              <div className="pt-3 border-t border-[#222]">
-                <p className="text-xs text-[#737373] mb-2">Planned Agents</p>
-                <div className="flex gap-2">
-                  {['T', 'W', 'T', 'F'].map((letter, i) => (
-                    <div key={i} className="w-8 h-8 rounded-full bg-[#1a1a1a] border border-[#333] flex items-center justify-center text-xs text-[#737373]">
-                      {letter}
-                    </div>
-                  ))}
+              <div className="flex items-start gap-3">
+                <div className="text-xs text-white/30 w-12">8:00 AM</div>
+                <div className="flex-1">
+                  <p className="text-sm text-white/70">News Briefing</p>
+                  <p className="text-xs text-white/40">Auto-run</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="text-xs text-[#d4a574] w-12">9:00 AM</div>
+                <div className="flex-1">
+                  <p className="text-sm text-white">Twitter Draft</p>
+                  <p className="text-xs text-white/40">Reminder</p>
                 </div>
               </div>
             </div>
@@ -204,4 +267,6 @@ export default function Dashboard() {
       </div>
     </div>
   );
-}
+};
+
+export default Dashboard;

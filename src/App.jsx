@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { 
   LayoutDashboard, 
   CheckSquare, 
@@ -6,30 +6,31 @@ import {
   Calendar, 
   BookOpen, 
   Users, 
-  Contact, 
   Settings,
   Menu,
   X,
-  Bell
+  Sparkles,
+  Zap,
+  Bell,
+  Search
 } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import TasksBoard from './components/TasksBoard';
 import ContentPipeline from './components/ContentPipeline';
 import CalendarView from './components/CalendarView';
-import Memory from './components/Memory';
+import MemoryLibrary from './components/MemoryLibrary';
 import AITeam from './components/AITeam';
 import Contacts from './components/Contacts';
-import SettingsView from './components/Settings';
+import SettingsView from './components/SettingsView';
 
 const navItems = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
   { id: 'tasks', label: 'Tasks', icon: CheckSquare },
   { id: 'content', label: 'Content', icon: FileText },
   { id: 'calendar', label: 'Calendar', icon: Calendar },
   { id: 'memory', label: 'Memory', icon: BookOpen },
   { id: 'team', label: 'AI Team', icon: Users },
-  { id: 'contacts', label: 'Contacts', icon: Contact },
-  { id: 'settings', label: 'Settings', icon: Settings },
+  { id: 'contacts', label: 'Contacts', icon: Users },
 ];
 
 function App() {
@@ -42,7 +43,7 @@ function App() {
       case 'tasks': return <TasksBoard />;
       case 'content': return <ContentPipeline />;
       case 'calendar': return <CalendarView />;
-      case 'memory': return <Memory />;
+      case 'memory': return <MemoryLibrary />;
       case 'team': return <AITeam />;
       case 'contacts': return <Contacts />;
       case 'settings': return <SettingsView />;
@@ -51,8 +52,8 @@ function App() {
   };
 
   return (
-    <div className="flex h-screen bg-[#0a0a0a] text-[#f5f5f0]">
-      {/* Mobile Overlay */}
+    <div className="flex h-screen bg-[#0a0a0a] overflow-hidden">
+      {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div 
           className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
@@ -61,36 +62,30 @@ function App() {
       )}
 
       {/* Sidebar */}
-      <aside className={`
-        fixed lg:static inset-y-0 left-0 z-50
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        w-64 bg-[#111] border-r border-[#222] transition-transform duration-300 ease-out flex flex-col
-      `}>
-        {/* Logo */}
-        <div className="p-5 border-b border-[#222]">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-lg font-semibold tracking-tight">
-                Mission
-                <span className="text-[#d4a574]">Control</span>
-              </h1>
-              <p className="text-xs text-[#737373] mt-0.5">Julz & Monday</p>
+      <aside 
+        className={`
+          fixed lg:static inset-y-0 left-0 z-50
+          w-64 bg-[#0a0a0a] border-r border-white/[0.06]
+          flex flex-col
+          transition-transform duration-300 ease-out
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        `}
+      >
+        {/* Logo Section */}
+        <div className="p-4 border-b border-white/[0.06]">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#1e3a5f] to-[#254670] flex items-center justify-center shadow-lg shadow-[#1e3a5f]/20">
+              <Sparkles className="w-5 h-5 text-[#d4a574]" />
             </div>
-            <button 
-              onClick={() => setSidebarOpen(false)} 
-              className="lg:hidden p-2 hover:bg-[#1a1a1a] rounded-lg transition-colors"
-            >
-              <X size={18} className="text-[#737373]" />
-            </button>
+            <div>
+              <h1 className="text-sm font-semibold text-white tracking-tight">Mission Control</h1>
+              <p className="text-[11px] text-white/40">Julz & Monday</p>
+            </div>
           </div>
         </div>
-        
+
         {/* Navigation */}
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          <div className="text-xs font-medium text-[#737373] uppercase tracking-wider px-3 py-2">
-            Menu
-          </div>
-          
+        <nav className="flex-1 overflow-y-auto p-3 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -101,73 +96,93 @@ function App() {
                   setActiveTab(item.id);
                   setSidebarOpen(false);
                 }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${
-                  isActive 
-                    ? 'bg-[#1e3a5f] text-white shadow-lg shadow-blue-900/20' 
-                    : 'text-[#a3a3a3] hover:bg-[#1a1a1a] hover:text-[#f5f5f0]'
-                }`}
+                className={`
+                  w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150
+                  ${isActive 
+                    ? 'bg-white/10 text-white font-medium' 
+                    : 'text-white/50 hover:text-white hover:bg-white/[0.05]'
+                  }
+                `}
               >
-                <Icon size={18} className={isActive ? 'text-[#d4a574]' : ''} />
-                <span className="text-sm font-medium">{item.label}</span>
-                
+                <Icon className={`w-4 h-4 ${isActive ? 'text-[#d4a574]' : ''}`} />
+                {item.label}
                 {isActive && (
-                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#d4a574]"></div>
+                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#d4a574]" />
                 )}
               </button>
             );
           })}
         </nav>
-        
-        {/* User Profile */}
-        <div className="p-4 border-t border-[#222]">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <div className="w-10 h-10 rounded-full bg-[#1e3a5f] flex items-center justify-center text-sm font-semibold border-2 border-[#d4a574]/30">
-                M
-              </div>
-              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-[#22c55e] rounded-full border-2 border-[#111]"></div>
+
+        {/* Bottom Section */}
+        <div className="p-3 border-t border-white/[0.06] space-y-1">
+          <button
+            onClick={() => setActiveTab('settings')}
+            className={`
+              w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150
+              ${activeTab === 'settings' 
+                ? 'bg-white/10 text-white font-medium' 
+                : 'text-white/50 hover:text-white hover:bg-white/[0.05]'
+              }
+            `}
+          >
+            <Settings className="w-4 h-4" />
+            Settings
+          </button>
+
+          {/* Agent Status */}
+          <div className="mt-3 p-3 rounded-lg bg-gradient-to-br from-[#1e3a5f]/20 to-transparent border border-[#1e3a5f]/30">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-xs font-medium text-white/70">Monday is online</span>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">Monday</p>
-              <p className="text-xs text-[#737373]">AI Assistant</p>
-            </div>
+            <p className="text-[11px] text-white/40">Ready to assist</p>
           </div>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Header */}
-        <header className="bg-[#111]/80 backdrop-blur-md border-b border-[#222] px-4 lg:px-6 py-4 flex items-center justify-between sticky top-0 z-30">
-          <div className="flex items-center gap-3">
-            <button 
+      <main className="flex-1 flex flex-col min-w-0 bg-[#0a0a0a]">
+        {/* Top Bar */}
+        <header className="h-14 border-b border-white/[0.06] flex items-center justify-between px-4 lg:px-6 bg-[#0a0a0a]/80 backdrop-blur-xl sticky top-0 z-30">
+          <div className="flex items-center gap-4">
+            <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 hover:bg-[#1a1a1a] rounded-lg transition-colors"
+              className="lg:hidden p-2 -ml-2 text-white/50 hover:text-white rounded-lg hover:bg-white/[0.05]"
             >
-              <Menu size={20} className="text-[#a3a3a3]" />
+              <Menu className="w-5 h-5" />
             </button>
             
-            <div className="hidden sm:block">
-              <p className="text-xs text-[#737373] uppercase tracking-wider">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+            {/* Breadcrumb */}
+            <div className="hidden sm:flex items-center gap-2 text-sm">
+              <span className="text-white/30">Mission Control</span>
+              <span className="text-white/20">/</span>
+              <span className="text-white font-medium capitalize">{activeTab}</span>
             </div>
           </div>
-          
-          <div className="flex items-center gap-3">
-            <button className="p-2 hover:bg-[#1a1a1a] rounded-lg transition-colors relative">
-              <Bell size={18} className="text-[#a3a3a3]" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#d4a574] rounded-full"></span>
+
+          {/* Right Side Actions */}
+          <div className="flex items-center gap-2">
+            <button className="p-2 text-white/40 hover:text-white rounded-lg hover:bg-white/[0.05] transition-colors">
+              <Search className="w-4 h-4" />
             </button>
-            
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-[#1a1a1a] rounded-lg border border-[#262626]">
-              <span className="w-2 h-2 rounded-full bg-[#22c55e] animate-pulse"></span>
-              <span className="text-xs text-[#a3a3a3]">System Online</span>
-            </div>
+            <button className="p-2 text-white/40 hover:text-white rounded-lg hover:bg-white/[0.05] transition-colors relative">
+              <Bell className="w-4 h-4" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#d4a574] rounded-full" />
+            </button>
+            <div className="w-px h-5 bg-white/10 mx-1" />
+            <button className="btn btn-primary text-xs py-1.5 px-3">
+              <Zap className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">New Task</span>
+            </button>
           </div>
         </header>
-        
+
         {/* Page Content */}
-        <div className="flex-1 overflow-auto">
-          {renderContent()}
+        <div className="flex-1 overflow-y-auto">
+          <div className="animate-fade-in">
+            {renderContent()}
+          </div>
         </div>
       </main>
     </div>

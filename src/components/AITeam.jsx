@@ -1,124 +1,163 @@
-import React from 'react';
-import { User, Activity, Clock, Code, PenTool, Search, Settings } from 'lucide-react';
+import { 
+  Bot, 
+  Sparkles, 
+  Plus, 
+  Settings,
+  Activity,
+  Clock,
+  CheckCircle2
+} from 'lucide-react';
 
-const agents = {
-  lead: {
+const agents = [
+  {
+    id: 1,
     name: 'Monday',
-    role: 'Lead Agent / Personal Assistant',
-    status: 'active',
-    task: 'Building Mission Control dashboard',
-    lastActive: 'Just now',
+    role: 'Personal Assistant',
+    status: 'online',
     avatar: 'M',
-    responsibilities: ['Twitter management', 'Reminders', 'Task tracking', 'General assistance'],
+    color: '#1e3a5f',
+    tasks: 12,
+    completed: 89,
+    description: 'Your guardian-archivist. Handles tasks, remembers everything, manages Twitter.',
   },
-  developers: [],
-  writers: [],
-  researchers: [],
-  operators: [],
-};
-
-const plannedAgents = [
-  { name: 'Tuesday', role: 'Code Specialist', type: 'developer', status: 'planned', task: 'Build apps while Julz sleeps' },
-  { name: 'Wednesday', role: 'Research Specialist', type: 'researcher', status: 'planned', task: 'Deep research, web scraping' },
-  { name: 'Thursday', role: 'Creative Lead', type: 'writer', status: 'planned', task: 'Content creation, design ideas' },
-  { name: 'Friday', role: 'Analytics', type: 'operator', status: 'planned', task: 'Data analysis, reporting' },
+  {
+    id: 2,
+    name: 'Tuesday',
+    role: 'Content Creator',
+    status: 'offline',
+    avatar: 'T',
+    color: '#8b5cf6',
+    tasks: 0,
+    completed: 0,
+    description: 'Specializes in video scripts and creative writing. Coming soon.',
+  },
+  {
+    id: 3,
+    name: 'Wednesday',
+    role: 'Research Analyst',
+    status: 'offline',
+    avatar: 'W',
+    color: '#22c55e',
+    tasks: 0,
+    completed: 0,
+    description: 'Deep research on web3, gaming trends, and market analysis. Coming soon.',
+  },
+  {
+    id: 4,
+    name: 'Thursday',
+    role: 'Code Assistant',
+    status: 'offline',
+    avatar: 'Th',
+    color: '#f59e0b',
+    tasks: 0,
+    completed: 0,
+    description: 'Vibe coding specialist. Builds apps and automations. Coming soon.',
+  },
 ];
 
-const statusIcons = {
-  active: <Activity size={14} className="text-accent-green" />,
-  idle: <Clock size={14} className="text-accent-gray" />,
-  planned: <Settings size={14} className="text-accent-yellow" />,
-};
+const AgentCard = ({ agent }) => {
+  const isOnline = agent.status === 'online';
 
-export default function AITeam() {
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-monday-amber">AI Team</h1>
-        <p className="text-gray-400">Your autonomous organization of AI agents</p>
-      </div>
-
-      {/* Lead Agent */}
-      <div className="card mb-6 border-monday-amber border-2">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-monday-navy flex items-center justify-center text-2xl font-bold">
-            {agents.lead.avatar}
-          </div>
-          
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold">{agents.lead.name}</h2>
-              {statusIcons[agents.lead.status]}
-            </div>            
-            <p className="text-monday-amber">{agents.lead.role}</p>            
-            <div className="flex items-center gap-4 mt-2 text-sm text-gray-400">
-              <span>Current: {agents.lead.task}</span>
-              <span>•</span>
-              <span>{agents.lead.lastActive}</span>
-            </div>
-          </div>
+    <div className="group relative p-5 rounded-xl bg-[#161616] border border-white/[0.06] hover:border-white/[0.12] transition-all duration-300">
+      <div className="flex items-start justify-between mb-4">
+        <div 
+          className="w-12 h-12 rounded-xl flex items-center justify-center text-lg font-semibold text-white"
+          style={{ backgroundColor: agent.color }}
+        >
+          {agent.avatar}
         </div>
-        
-        <div className="mt-4 pt-4 border-t border-gray-800">
-          <h3 className="text-sm font-medium text-gray-400 mb-2">Responsibilities</h3>
-          <div className="flex flex-wrap gap-2">
-            {agents.lead.responsibilities.map((resp, i) => (
-              <span key={i} className="bg-julz-black px-3 py-1 rounded-full text-sm">{resp}</span>
-            ))}
-          </div>
+
+        <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/[0.05]">
+          <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-green-400 animate-pulse' : 'bg-white/20'}`} />
+          <span className="text-[10px] text-white/50 uppercase">{isOnline ? 'Online' : 'Offline'}</span>
         </div>
       </div>
 
-      {/* Planned Agents */}
-      <h2 className="text-lg font-semibold mb-4">Planned Agents</h2>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {plannedAgents.map((agent) => (
-          <div key={agent.name} className="card opacity-75">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center text-lg font-bold">
-                {agent.name[0]}
-              </div>
-              
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="font-medium">{agent.name}</h3>
-                  <span className="text-xs bg-accent-yellow text-black px-2 py-0.5 rounded">Planned</span>
-                </div>                
-                <p className="text-sm text-gray-400">{agent.role}</p>
-              </div>
-            </div>            
-            <p className="mt-3 text-sm text-gray-500">{agent.task}</p>
-          </div>
-        ))}
-      </div>
+      <h3 className="text-base font-semibold text-white mb-0.5">{agent.name}</h3>
+      <p className="text-xs text-[#d4a574] mb-3">{agent.role}</p>
+      <p className="text-sm text-white/50 mb-4 line-clamp-2">{agent.description}</p>
 
-      {/* Team Stats */}
-      <div className="grid grid-cols-4 gap-4 mt-6">
-        <div className="card text-center">
-          <Code size={24} className="mx-auto mb-2 text-accent-blue" />
-          <p className="text-2xl font-bold">0</p>
-          <p className="text-sm text-gray-500">Developers</p>
+      <div className="flex items-center gap-4 text-xs text-white/40">
+        <div className="flex items-center gap-1.5">
+          <Activity className="w-3.5 h-3.5" />
+          <span>{agent.tasks} tasks</span>
         </div>
-        
-        <div className="card text-center">
-          <PenTool size={24} className="mx-auto mb-2 text-accent-purple" />
-          <p className="text-2xl font-bold">0</p>
-          <p className="text-sm text-gray-500">Writers</p>
-        </div>
-        
-        <div className="card text-center">
-          <Search size={24} className="mx-auto mb-2 text-accent-green" />
-          <p className="text-2xl font-bold">0</p>
-          <p className="text-sm text-gray-500">Researchers</p>
-        </div>
-        
-        <div className="card text-center">
-          <Settings size={24} className="mx-auto mb-2 text-accent-yellow" />
-          <p className="text-2xl font-bold">0</p>
-          <p className="text-sm text-gray-500">Operators</p>
+        <div className="flex items-center gap-1.5">
+          <CheckCircle2 className="w-3.5 h-3.5" />
+          <span>{agent.completed} done</span>
         </div>
       </div>
     </div>
   );
-}
+};
+
+const AITeam = () => {
+  const activeAgents = agents.filter(a => a.status === 'online').length;
+
+  return (
+    <div className="h-full overflow-y-auto">
+      <div className="px-4 lg:px-8 py-6 border-b border-white/[0.06]">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-4 h-4 text-[#d4a574]" />
+              <span className="text-xs font-medium text-[#d4a574] uppercase tracking-wider">AI Team</span>
+            </div>
+            <h1 className="text-xl font-semibold text-white mb-1">Your AI Workforce</h1>
+            <p className="text-sm text-white/50">{activeAgents} of {agents.length} agents active
+            </p>
+          </div>
+
+          <button className="btn btn-primary">
+            <Plus className="w-4 h-4" />
+            Add Agent
+          </button>
+        </div>
+      </div>
+
+      <div className="p-4 lg:p-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          {agents.map((agent) => (
+            <AgentCard key={agent.id} agent={agent} />
+          ))}
+        </div>
+
+        {/* Team Stats */}
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-5 rounded-xl bg-[#111] border border-white/[0.06]">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 rounded-lg bg-green-500/10">
+                <Activity className="w-4 h-4 text-green-400" />
+              </div>
+              <span className="text-sm text-white/50">Total Tasks</span>
+            </div>
+            <p className="text-2xl font-semibold text-white">89</p>
+          </div>
+
+          <div className="p-5 rounded-xl bg-[#111] border border-white/[0.06]">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 rounded-lg bg-blue-500/10">
+                <CheckCircle2 className="w-4 h-4 text-blue-400" />
+              </div>
+              <span className="text-sm text-white/50">Completed</span>
+            </div>
+            <p className="text-2xl font-semibold text-white">89</p>
+          </div>
+
+          <div className="p-5 rounded-xl bg-[#111] border border-white/[0.06]">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 rounded-lg bg-amber-500/10">
+                <Clock className="w-4 h-4 text-amber-400" />
+              </div>
+              <span className="text-sm text-white/50">Avg Response</span>
+            </div>
+            <p className="text-2xl font-semibold text-white">{'< 1s'}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AITeam;

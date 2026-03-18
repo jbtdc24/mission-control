@@ -1,170 +1,212 @@
-import React, { useState } from 'react';
-import { Plus, Calendar, Video, FileText, Twitter, Linkedin, Instagram, Youtube, MoreHorizontal } from 'lucide-react';
-import { useContent, useActivities } from '../hooks/useApi';
-
-const stages = [
-  { id: 'idea', label: 'Idea', color: 'bg-[#737373]', border: 'border-l-[#737373]' },
-  { id: 'script', label: 'Script', color: 'bg-[#3b82f6]', border: 'border-l-[#3b82f6]' },
-  { id: 'record', label: 'Record', color: 'bg-[#8b5cf6]', border: 'border-l-[#8b5cf6]' },
-  { id: 'edit', label: 'Edit', color: 'bg-[#f59e0b]', border: 'border-l-[#f59e0b]' },
-  { id: 'review', label: 'Review', color: 'bg-[#f97316]', border: 'border-l-[#f97316]' },
-  { id: 'scheduled', label: 'Scheduled', color: 'bg-[#d4a574]', border: 'border-l-[#d4a574]' },
-  { id: 'published', label: 'Published', color: 'bg-[#22c55e]', border: 'border-l-[#22c55e]' },
-];
-
-const weeklyThemes = {
-  Monday: 'Industry News & Updates',
-  Tuesday: 'Creative Work & Tutorials', 
-  Wednesday: 'Community & Engagement',
-  Thursday: 'Behind the Scenes',
-  Friday: 'Weekly Recap',
-};
+import { useState } from 'react';
+import { 
+  Plus, 
+  Twitter, 
+  Youtube, 
+  Instagram, 
+  Linkedin,
+  Search,
+  Filter,
+  MoreHorizontal,
+  Calendar,
+  Clock,
+  CheckCircle2,
+  Circle,
+  PlayCircle
+} from 'lucide-react';
+import { useContent } from '../hooks/useApi';
 
 const platformIcons = {
-  Twitter: Twitter,
+  Twitter,
   YouTube: Youtube,
+  Instagram,
   LinkedIn: Linkedin,
-  Instagram: Instagram,
 };
 
-const platformColors = {
-  Twitter: 'text-[#1da1f2]',
-  YouTube: 'text-[#ff0000]',
-  LinkedIn: 'text-[#0077b5]',
-  Instagram: 'text-[#e4405f]',
+const stageConfig = {
+  idea: { label: 'Idea', color: 'bg-white/10 text-white/50', icon: Circle },
+  script: { label: 'Script', color: 'bg-blue-500/10 text-blue-400', icon: Circle },
+  record: { label: 'Recording', color: 'bg-purple-500/10 text-purple-400', icon: PlayCircle },
+  edit: { label: 'Editing', color: 'bg-amber-500/10 text-amber-400', icon: Clock },
+  review: { label: 'Review', color: 'bg-orange-500/10 text-orange-400', icon: Circle },
+  scheduled: { label: 'Scheduled', color: 'bg-cyan-500/10 text-cyan-400', icon: Calendar },
+  published: { label: 'Published', color: 'bg-green-500/10 text-green-400', icon: CheckCircle2 },
 };
 
-export default function ContentPipeline() {
-  const { content, loading, updateContent } = useContent();
-  const { addActivity } = useActivities();
-  const [view, setView] = useState('kanban');
-
-  const moveContent = async (id, newStage, title) => {
-    await updateContent(id, { stage: newStage });
-    await addActivity({
-      action: `Moved "${title}" to ${stages.find(s => s.id === newStage)?.label}`,
-      agent: 'Julz',
-      status: 'completed'
-    });
-  };
-
-  if (loading) return (
-    <div className="p-6 flex items-center justify-center h-full">
-      <div className="text-[#737373]">Loading content...</div>
-    </div>
-  );
+const ContentCard = ({ item }) => {
+  const PlatformIcon = platformIcons[item.platform] || Twitter;
+  const stage = stageConfig[item.stage] || stageConfig.idea;
+  const StageIcon = stage.icon;
 
   return (
-    <div className="p-4 lg:p-6 h-full flex flex-col max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-xl font-semibold">Content Pipeline</h1>
-          <p className="text-sm text-[#737373] mt-0.5">Track content from idea to published</p>
+    <div className="group p-4 rounded-xl bg-[#161616] border border-white/[0.06] hover:border-white/[0.12] hover:bg-[#1c1c1c] transition-all duration-200">
+      <div className="flex items-start gap-3">
+        <div className="p-2 rounded-lg bg-white/[0.05]">
+          <PlatformIcon className="w-4 h-4 text-white/60" />
         </div>
-        
-        <div className="flex items-center gap-3">
-          <div className="flex bg-[#1a1a1a] rounded-lg p-1 border border-[#262626]">
-            <button 
-              onClick={() => setView('kanban')}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${view === 'kanban' ? 'bg-[#1e3a5f] text-white' : 'text-[#737373] hover:text-[#f5f5f0]'}`}
-            >
-              Kanban
+
+        <div className="flex-1 min-w-0">
+          <h4 className="text-sm font-medium text-white/90 mb-1 truncate">
+            {item.title}
+          </h4>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className={`inline-flex items-center gap-1.5 text-[11px] px-2 py-0.5 rounded-full ${stage.color}`}>
+              <StageIcon className="w-3 h-3" />
+              {stage.label}
+            </span>
+
+            <span className="text-[11px] text-white/40">
+              {item.day}
+            </span>
+          </div>
+        </div>
+
+        <button className="opacity-0 group-hover:opacity-100 p-1.5 rounded hover:bg-white/[0.1] transition-all">
+          <MoreHorizontal className="w-4 h-4 text-white/40" />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const ContentPipeline = () => {
+  const { content } = useContent();
+  const [selectedStage, setSelectedStage] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const stages = Object.keys(stageConfig);
+
+  const filteredContent = content.filter(item => {
+    const matchesStage = selectedStage === 'all' || item.stage === selectedStage;
+    const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesStage && matchesSearch;
+  });
+
+  const contentByStage = stages.reduce((acc, stage) => {
+    acc[stage] = filteredContent.filter(item => item.stage === stage);
+    return acc;
+  }, {});
+
+  return (
+    <div className="h-full flex flex-col">
+      {/* Header */}
+      <div className="px-4 lg:px-8 py-6 border-b border-white/[0.06]">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-xl font-semibold text-white mb-1">Content Pipeline</h1>
+            <p className="text-sm text-white/50">Track your content from idea to published</p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search content..."
+                className="input pl-10 w-64"
+              />
+            </div>
+
+            <button className="btn btn-secondary">
+              <Filter className="w-4 h-4" />
+              Filter
             </button>
-            <button 
-              onClick={() => setView('calendar')}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${view === 'calendar' ? 'bg-[#1e3a5f] text-white' : 'text-[#737373] hover:text-[#f5f5f0]'}`}
-            >
-              Calendar
+
+            <button className="btn btn-primary">
+              <Plus className="w-4 h-4" />
+              New Content
             </button>
           </div>
-          
-          <button className="btn-primary flex items-center gap-2">
-            <Plus size={16} />
-            <span className="hidden sm:inline">New Content</span>
+        </div>
+
+        {/* Stage Filter */}
+        <div className="mt-6 flex items-center gap-2 overflow-x-auto pb-2">
+          <button
+            onClick={() => setSelectedStage('all')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
+              selectedStage === 'all'
+                ? 'bg-white/10 text-white'
+                : 'text-white/50 hover:text-white hover:bg-white/[0.05]'
+            }`}
+          >
+            All Stages
           </button>
-        </div>
-      </div>
 
-      {/* Weekly Schedule */}
-      <div className="card p-5 mb-6">
-        <h3 className="text-sm font-medium text-[#737373] uppercase tracking-wider mb-4">Weekly Content Themes</h3>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          {Object.entries(weeklyThemes).map(([day, theme]) => (
-            <div key={day} className="bg-[#111] rounded-lg p-3 border border-[#1a1a1a]">
-              <p className="text-sm font-medium text-[#d4a574]">{day}</p>
-              <p className="text-xs text-[#737373] mt-1">{theme}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Kanban Board */}
-      <div className="flex-1 overflow-x-auto pb-4 -mx-4 px-4">
-        <div className="flex gap-5 min-w-max">
           {stages.map((stage) => {
-            const stageContent = content.filter(c => c.stage === stage.id);
+            const config = stageConfig[stage];
+            const count = contentByStage[stage]?.length || 0;
+
             return (
-              <div key={stage.id} className="w-72 flex flex-col">
-                {/* Column Header */}
-                <div className="flex items-center justify-between mb-3 px-1">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${stage.color}`}></div>
-                    <h3 className="font-medium text-sm">{stage.label}</h3>
-                    <span className="text-xs text-[#737373] bg-[#1a1a1a] px-2 py-0.5 rounded-full">
-                      {stageContent.length}
-                    </span>
-                  </div>
-                </div>
-                
-                {/* Content Cards */}
-                <div className="flex-1 bg-[#111] rounded-xl border border-[#1a1a1a] p-2 space-y-2 overflow-y-auto">
-                  {stageContent.map((item) => {
-                    const Icon = platformIcons[item.platform] || FileText;
-                    return (
-                      <div 
-                        key={item.id} 
-                        className={`group bg-[#1a1a1a] rounded-lg p-4 border-l-2 ${stage.border} hover:bg-[#1f1f1f] transition-all cursor-pointer`}
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <p className="text-sm font-medium flex-1">{item.title}</p>
-                          <Icon size={16} className={platformColors[item.platform] || 'text-[#737373]'} />
-                        </div>
-                        
-                        <div className="flex items-center gap-3 mt-3 text-xs text-[#737373]">
-                          <span className="bg-[#252525] px-2 py-0.5 rounded">{item.platform}</span>
-                          <span>{item.day}</span>
-                          <span className="bg-[#252525] px-2 py-0.5 rounded uppercase text-[10px]">{item.type}</span>
-                        </div>
-                        
-                        {/* Move Buttons */}
-                        <div className="flex flex-wrap gap-1 mt-3 pt-3 border-t border-[#262626] opacity-0 group-hover:opacity-100 transition-opacity">
-                          {stages.filter(s => s.id !== item.stage).slice(0, 3).map(s => (
-                            <button
-                              key={s.id}
-                              onClick={() => moveContent(item.id, s.id, item.title)}
-                              className="text-[10px] px-2 py-1 bg-[#252525] hover:bg-[#303030] rounded transition-colors"
-                            >
-                              → {s.label}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                  
-                  
-                  {stageContent.length === 0 && (
-                    <div className="text-center py-8 text-[#737373] text-sm">
-                      No content
-                    </div>
-                  )}
-                </div>
-              </div>
+              <button
+                key={stage}
+                onClick={() => setSelectedStage(stage)}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
+                  selectedStage === stage
+                    ? 'bg-white/10 text-white'
+                    : 'text-white/50 hover:text-white hover:bg-white/[0.05]'
+                }`}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${config.color.split(' ')[0].replace('bg-', 'bg-').replace('/10', '')}`} />
+                {config.label}
+                <span className="text-white/30">({count})</span>
+              </button>
             );
           })}
         </div>
       </div>
+
+      {/* Content Grid */}
+      <div className="flex-1 overflow-y-auto p-4 lg:p-8">
+        {selectedStage === 'all' ? (
+          // Show by stages
+          <div className="space-y-8">
+            {stages.map((stage) => {
+              const items = contentByStage[stage];
+              if (items.length === 0) return null;
+
+              const config = stageConfig[stage];
+
+              return (
+                <div key={stage}>
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className={`w-2 h-2 rounded-full ${config.color.split(' ')[0].replace('bg-', 'bg-').replace('/10', '')}`} />
+                    <h3 className="text-sm font-medium text-white/80">{config.label}</h3>
+                    <span className="text-xs text-white/30">({items.length})</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {items.map((item) => (
+                      <ContentCard key={item.id} item={item} />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          // Show filtered
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {filteredContent.map((item) => (
+              <ContentCard key={item.id} item={item} />
+            ))}
+          </div>
+        )}
+
+        {filteredContent.length === 0 && (
+          <div className="h-96 flex flex-col items-center justify-center text-white/30">
+            <div className="w-16 h-16 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-4">
+              <Search className="w-8 h-8" />
+            </div>
+            <p className="text-sm">No content found</p>
+            <p className="text-xs mt-1">Try adjusting your filters</p>
+          </div>
+        )}
+      </div>
     </div>
   );
-}
+};
+
+export default ContentPipeline;
