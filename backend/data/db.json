@@ -1,0 +1,178 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Draft morning Twitter post",
+      "assignee": "Monday",
+      "priority": "high",
+      "status": "todo",
+      "due_date": "Today",
+      "project": "Twitter",
+      "created_at": "2026-03-18T20:52:01.182Z"
+    },
+    {
+      "id": 2,
+      "title": "Fix Gemini billing setup",
+      "assignee": "Julz",
+      "priority": "urgent",
+      "status": "todo",
+      "due_date": "Tomorrow",
+      "project": "Setup",
+      "created_at": "2026-03-18T20:52:01.183Z"
+    },
+    {
+      "id": 3,
+      "title": "Set up Google Calendar",
+      "assignee": "Julz",
+      "priority": "high",
+      "status": "todo",
+      "due_date": "Tomorrow",
+      "project": "Setup",
+      "created_at": "2026-03-18T20:52:01.183Z"
+    },
+    {
+      "id": 4,
+      "title": "Research Anichess updates",
+      "assignee": "Monday",
+      "priority": "medium",
+      "status": "in-progress",
+      "due_date": "Today",
+      "project": "Research",
+      "created_at": "2026-03-18T20:52:01.183Z"
+    },
+    {
+      "id": 5,
+      "title": "Create Tuesday agent",
+      "assignee": "Monday",
+      "priority": "medium",
+      "status": "in-progress",
+      "due_date": "Tomorrow",
+      "project": "AI Team",
+      "created_at": "2026-03-18T20:52:01.183Z"
+    },
+    {
+      "id": 6,
+      "title": "Deploy Star Office",
+      "assignee": "Monday",
+      "priority": "medium",
+      "status": "done",
+      "due_date": "Yesterday",
+      "project": "Dev",
+      "created_at": "2026-03-18T20:52:01.183Z"
+    }
+  ],
+  "activities": [
+    {
+      "id": 1,
+      "action": "Drafted Twitter post",
+      "agent": "Monday",
+      "status": "completed",
+      "created_at": "2026-03-18T20:47:01.183Z"
+    },
+    {
+      "id": 2,
+      "action": "Set up Mission Control dashboard",
+      "agent": "Monday",
+      "status": "completed",
+      "created_at": "2026-03-18T20:37:01.183Z"
+    },
+    {
+      "id": 3,
+      "action": "Deployed Star Office to Vercel",
+      "agent": "Monday",
+      "status": "completed",
+      "created_at": "2026-03-18T19:52:01.183Z"
+    },
+    {
+      "id": 4,
+      "action": "Scheduled daily weather alerts",
+      "agent": "Monday",
+      "status": "completed",
+      "created_at": "2026-03-18T18:52:01.183Z"
+    },
+    {
+      "id": 5,
+      "action": "Creating additional AI agents",
+      "agent": "Monday",
+      "status": "pending",
+      "created_at": "2026-03-18T20:52:01.183Z"
+    }
+  ],
+  "content": [
+    {
+      "id": 1,
+      "title": "Anichess Tournament Update",
+      "platform": "Twitter",
+      "stage": "scheduled",
+      "day": "Monday",
+      "type": "text",
+      "created_at": "2026-03-18T20:52:01.183Z"
+    },
+    {
+      "id": 2,
+      "title": "Vibe Coding Tutorial",
+      "platform": "YouTube",
+      "stage": "script",
+      "day": "Tuesday",
+      "type": "video",
+      "created_at": "2026-03-18T20:52:01.183Z"
+    },
+    {
+      "id": 3,
+      "title": "Web3 Gaming Trends",
+      "platform": "LinkedIn",
+      "stage": "idea",
+      "day": "Wednesday",
+      "type": "text",
+      "created_at": "2026-03-18T20:52:01.183Z"
+    },
+    {
+      "id": 4,
+      "title": "Behind the Scenes",
+      "platform": "Instagram",
+      "stage": "edit",
+      "day": "Thursday",
+      "type": "video",
+      "created_at": "2026-03-18T20:52:01.183Z"
+    },
+    {
+      "id": 5,
+      "title": "Weekly Recap",
+      "platform": "Twitter",
+      "stage": "published",
+      "day": "Friday",
+      "type": "text",
+      "created_at": "2026-03-18T20:52:01.183Z"
+    }
+  ],
+  "cronJobs": [
+    {
+      "id": 1,
+      "name": "Weather Check",
+      "schedule": "7:00 AM daily",
+      "status": "active",
+      "last_run": "Today"
+    },
+    {
+      "id": 2,
+      "name": "News Briefing",
+      "schedule": "8:00 AM daily",
+      "status": "active",
+      "last_run": "Today"
+    },
+    {
+      "id": 3,
+      "name": "Twitter Morning Post",
+      "schedule": "9:00 AM daily",
+      "status": "active",
+      "last_run": "Pending"
+    },
+    {
+      "id": 4,
+      "name": "Higgsfield Reminder",
+      "schedule": "April 1, 8:00 AM",
+      "status": "scheduled",
+      "last_run": "-"
+    }
+  ]
+}

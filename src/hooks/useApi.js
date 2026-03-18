@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_URL = 'https://dealers-dallas-cat-sing.trycloudflare.com/api';
 
 export function useTasks() {
   const [tasks, setTasks] = useState([]);

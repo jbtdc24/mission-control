@@ -1,213 +1,166 @@
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const DATA_DIR = join(__dirname, '../data');
+const DB_FILE = join(DATA_DIR, 'db.json');
+
+// Initial data
+const initialData = {
+  tasks: [
+    { id: 1, title: 'Draft morning Twitter post', assignee: 'Monday', priority: 'high', status: 'todo', due_date: 'Today', project: 'Twitter', created_at: new Date().toISOString() },
+    { id: 2, title: 'Fix Gemini billing setup', assignee: 'Julz', priority: 'urgent', status: 'todo', due_date: 'Tomorrow', project: 'Setup', created_at: new Date().toISOString() },
+    { id: 3, title: 'Set up Google Calendar', assignee: 'Julz', priority: 'high', status: 'todo', due_date: 'Tomorrow', project: 'Setup', created_at: new Date().toISOString() },
+    { id: 4, title: 'Research Anichess updates', assignee: 'Monday', priority: 'medium', status: 'in-progress', due_date: 'Today', project: 'Research', created_at: new Date().toISOString() },
+    { id: 5, title: 'Create Tuesday agent', assignee: 'Monday', priority: 'medium', status: 'in-progress', due_date: 'Tomorrow', project: 'AI Team', created_at: new Date().toISOString() },
+    { id: 6, title: 'Deploy Star Office', assignee: 'Monday', priority: 'medium', status: 'done', due_date: 'Yesterday', project: 'Dev', created_at: new Date().toISOString() },
+  ],
+  activities: [
+    { id: 1, action: 'Drafted Twitter post', agent: 'Monday', status: 'completed', created_at: new Date(Date.now() - 5 * 60000).toISOString() },
+    { id: 2, action: 'Set up Mission Control dashboard', agent: 'Monday', status: 'completed', created_at: new Date(Date.now() - 15 * 60000).toISOString() },
+    { id: 3, action: 'Deployed Star Office to Vercel', agent: 'Monday', status: 'completed', created_at: new Date(Date.now() - 60 * 60000).toISOString() },
+    { id: 4, action: 'Scheduled daily weather alerts', agent: 'Monday', status: 'completed', created_at: new Date(Date.now() - 120 * 60000).toISOString() },
+    { id: 5, action: 'Creating additional AI agents', agent: 'Monday', status: 'pending', created_at: new Date().toISOString() },
+  ],
+  content: [
+    { id: 1, title: 'Anichess Tournament Update', platform: 'Twitter', stage: 'scheduled', day: 'Monday', type: 'text', created_at: new Date().toISOString() },
+    { id: 2, title: 'Vibe Coding Tutorial', platform: 'YouTube', stage: 'script', day: 'Tuesday', type: 'video', created_at: new Date().toISOString() },
+    { id: 3, title: 'Web3 Gaming Trends', platform: 'LinkedIn', stage: 'idea', day: 'Wednesday', type: 'text', created_at: new Date().toISOString() },
+    { id: 4, title: 'Behind the Scenes', platform: 'Instagram', stage: 'edit', day: 'Thursday', type: 'video', created_at: new Date().toISOString() },
+    { id: 5, title: 'Weekly Recap', platform: 'Twitter', stage: 'published', day: 'Friday', type: 'text', created_at: new Date().toISOString() },
+  ],
+  cronJobs: [
+    { id: 1, name: 'Weather Check', schedule: '7:00 AM daily', status: 'active', last_run: 'Today' },
+    { id: 2, name: 'News Briefing', schedule: '8:00 AM daily', status: 'active', last_run: 'Today' },
+    { id: 3, name: 'Twitter Morning Post', schedule: '9:00 AM daily', status: 'active', last_run: 'Pending' },
+    { id: 4, name: 'Higgsfield Reminder', schedule: 'April 1, 8:00 AM', status: 'scheduled', last_run: '-' },
+  ],
+};
 
 export class Database {
   constructor() {
-    this.db = null;
+    this.data = null;
+    this.init();
   }
 
-  async init() {
-    this.db = await open({
-      filename: join(__dirname, '../data/mission-control.db'),
-      driver: sqlite3.Database
-    });
-
-    await this.createTables();
-    await this.seedData();
+  init() {
+    if (!existsSync(DATA_DIR)) {
+      mkdirSync(DATA_DIR, { recursive: true });
+    }
+    
+    if (!existsSync(DB_FILE)) {
+      this.data = initialData;
+      this.save();
+    } else {
+      this.load();
+    }
   }
 
-  async createTables() {
-    await this.db.exec(`
-      CREATE TABLE IF NOT EXISTS tasks (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        assignee TEXT DEFAULT 'Julz',
-        priority TEXT DEFAULT 'medium',
-        status TEXT DEFAULT 'todo',
-        due_date TEXT,
-        project TEXT DEFAULT 'General',
-        description TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-
-      CREATE TABLE IF NOT EXISTS activities (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        action TEXT NOT NULL,
-        agent TEXT DEFAULT 'Monday',
-        status TEXT DEFAULT 'completed',
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-
-      CREATE TABLE IF NOT EXISTS content (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        platform TEXT,
-        stage TEXT DEFAULT 'idea',
-        day TEXT,
-        type TEXT DEFAULT 'text',
-        script TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-
-      CREATE TABLE IF NOT EXISTS cron_jobs (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        schedule TEXT NOT NULL,
-        status TEXT DEFAULT 'active',
-        last_run TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
+  load() {
+    try {
+      this.data = JSON.parse(readFileSync(DB_FILE, 'utf8'));
+    } catch {
+      this.data = initialData;
+      this.save();
+    }
   }
 
-  async seedData() {
-    // Check if we already have data
-    const count = await this.db.get('SELECT COUNT(*) as count FROM tasks');
-    if (count.count > 0) return;
-
-    // Seed tasks
-    const tasks = [
-      { title: 'Draft morning Twitter post', assignee: 'Monday', priority: 'high', status: 'todo', due_date: 'Today', project: 'Twitter' },
-      { title: 'Fix Gemini billing setup', assignee: 'Julz', priority: 'urgent', status: 'todo', due_date: 'Tomorrow', project: 'Setup' },
-      { title: 'Set up Google Calendar', assignee: 'Julz', priority: 'high', status: 'todo', due_date: 'Tomorrow', project: 'Setup' },
-      { title: 'Research Anichess updates', assignee: 'Monday', priority: 'medium', status: 'in-progress', due_date: 'Today', project: 'Research' },
-      { title: 'Create Tuesday agent', assignee: 'Monday', priority: 'medium', status: 'in-progress', due_date: 'Tomorrow', project: 'AI Team' },
-      { title: 'Deploy Star Office', assignee: 'Monday', priority: 'medium', status: 'done', due_date: 'Yesterday', project: 'Dev' },
-    ];
-
-    for (const task of tasks) {
-      await this.db.run(
-        'INSERT INTO tasks (title, assignee, priority, status, due_date, project) VALUES (?, ?, ?, ?, ?, ?)',
-        [task.title, task.assignee, task.priority, task.status, task.due_date, task.project]
-      );
-    }
-
-    // Seed activities
-    const activities = [
-      { action: 'Drafted Twitter post', agent: 'Monday', status: 'completed' },
-      { action: 'Set up Mission Control dashboard', agent: 'Monday', status: 'completed' },
-      { action: 'Deployed Star Office to Vercel', agent: 'Monday', status: 'completed' },
-      { action: 'Scheduled daily weather alerts', agent: 'Monday', status: 'completed' },
-      { action: 'Creating additional AI agents', agent: 'Monday', status: 'pending' },
-    ];
-
-    for (const act of activities) {
-      await this.db.run(
-        'INSERT INTO activities (action, agent, status) VALUES (?, ?, ?)',
-        [act.action, act.agent, act.status]
-      );
-    }
-
-    // Seed content
-    const content = [
-      { title: 'Anichess Tournament Update', platform: 'Twitter', stage: 'scheduled', day: 'Monday', type: 'text' },
-      { title: 'Vibe Coding Tutorial', platform: 'YouTube', stage: 'script', day: 'Tuesday', type: 'video' },
-      { title: 'Web3 Gaming Trends', platform: 'LinkedIn', stage: 'idea', day: 'Wednesday', type: 'text' },
-      { title: 'Behind the Scenes', platform: 'Instagram', stage: 'edit', day: 'Thursday', type: 'video' },
-      { title: 'Weekly Recap', platform: 'Twitter', stage: 'published', day: 'Friday', type: 'text' },
-    ];
-
-    for (const item of content) {
-      await this.db.run(
-        'INSERT INTO content (title, platform, stage, day, type) VALUES (?, ?, ?, ?, ?)',
-        [item.title, item.platform, item.stage, item.day, item.type]
-      );
-    }
-
-    // Seed cron jobs
-    const jobs = [
-      { name: 'Weather Check', schedule: '7:00 AM daily', status: 'active', last_run: 'Today' },
-      { name: 'News Briefing', schedule: '8:00 AM daily', status: 'active', last_run: 'Today' },
-      { name: 'Twitter Morning Post', schedule: '9:00 AM daily', status: 'active', last_run: 'Pending' },
-      { name: 'Higgsfield Reminder', schedule: 'April 1, 8:00 AM', status: 'scheduled', last_run: '-' },
-    ];
-
-    for (const job of jobs) {
-      await this.db.run(
-        'INSERT INTO cron_jobs (name, schedule, status, last_run) VALUES (?, ?, ?, ?)',
-        [job.name, job.schedule, job.status, job.last_run]
-      );
-    }
+  save() {
+    writeFileSync(DB_FILE, JSON.stringify(this.data, null, 2));
   }
 
   // Tasks
-  async getTasks() {
-    return await this.db.all('SELECT * FROM tasks ORDER BY created_at DESC');
+  getTasks() {
+    return this.data.tasks.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   }
 
-  async addTask(task) {
-    const result = await this.db.run(
-      'INSERT INTO tasks (title, assignee, priority, status, due_date, project, description) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [task.title, task.assignee || 'Julz', task.priority || 'medium', task.status || 'todo', task.due_date || 'Today', task.project || 'General', task.description]
-    );
-    return await this.db.get('SELECT * FROM tasks WHERE id = ?', result.lastID);
+  addTask(task) {
+    const newTask = {
+      id: Date.now(),
+      ...task,
+      created_at: new Date().toISOString(),
+    };
+    this.data.tasks.push(newTask);
+    this.save();
+    return newTask;
   }
 
-  async updateTask(id, updates) {
-    const sets = Object.keys(updates).map(k => `${k} = ?`).join(', ');
-    const values = [...Object.values(updates), id];
-    await this.db.run(`UPDATE tasks SET ${sets}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, values);
-    return await this.db.get('SELECT * FROM tasks WHERE id = ?', id);
+  updateTask(id, updates) {
+    const index = this.data.tasks.findIndex(t => t.id == id);
+    if (index !== -1) {
+      this.data.tasks[index] = { ...this.data.tasks[index], ...updates };
+      this.save();
+      return this.data.tasks[index];
+    }
+    return null;
   }
 
-  async deleteTask(id) {
-    await this.db.run('DELETE FROM tasks WHERE id = ?', id);
+  deleteTask(id) {
+    this.data.tasks = this.data.tasks.filter(t => t.id != id);
+    this.save();
   }
 
   // Activities
-  async getActivities() {
-    return await this.db.all('SELECT * FROM activities ORDER BY created_at DESC LIMIT 20');
+  getActivities() {
+    return this.data.activities.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   }
 
-  async addActivity(activity) {
-    const result = await this.db.run(
-      'INSERT INTO activities (action, agent, status) VALUES (?, ?, ?)',
-      [activity.action, activity.agent || 'Monday', activity.status || 'completed']
-    );
-    return await this.db.get('SELECT * FROM activities WHERE id = ?', result.lastID);
+  addActivity(activity) {
+    const newActivity = {
+      id: Date.now(),
+      ...activity,
+      created_at: new Date().toISOString(),
+    };
+    this.data.activities.unshift(newActivity);
+    if (this.data.activities.length > 50) {
+      this.data.activities = this.data.activities.slice(0, 50);
+    }
+    this.save();
+    return newActivity;
   }
 
   // Content
-  async getContent() {
-    return await this.db.all('SELECT * FROM content ORDER BY created_at DESC');
+  getContent() {
+    return this.data.content;
   }
 
-  async addContent(item) {
-    const result = await this.db.run(
-      'INSERT INTO content (title, platform, stage, day, type, script) VALUES (?, ?, ?, ?, ?, ?)',
-      [item.title, item.platform, item.stage || 'idea', item.day, item.type || 'text', item.script]
-    );
-    return await this.db.get('SELECT * FROM content WHERE id = ?', result.lastID);
+  addContent(item) {
+    const newItem = {
+      id: Date.now(),
+      ...item,
+      created_at: new Date().toISOString(),
+    };
+    this.data.content.push(newItem);
+    this.save();
+    return newItem;
   }
 
-  async updateContent(id, updates) {
-    const sets = Object.keys(updates).map(k => `${k} = ?`).join(', ');
-    const values = [...Object.values(updates), id];
-    await this.db.run(`UPDATE content SET ${sets}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, values);
-    return await this.db.get('SELECT * FROM content WHERE id = ?', id);
+  updateContent(id, updates) {
+    const index = this.data.content.findIndex(c => c.id == id);
+    if (index !== -1) {
+      this.data.content[index] = { ...this.data.content[index], ...updates };
+      this.save();
+      return this.data.content[index];
+    }
+    return null;
   }
 
-  // Cron jobs
-  async getCronJobs() {
-    return await this.db.all('SELECT * FROM cron_jobs ORDER BY created_at DESC');
+  // Cron Jobs
+  getCronJobs() {
+    return this.data.cronJobs;
   }
 
   // Stats
-  async getStats() {
-    const taskCount = await this.db.get('SELECT COUNT(*) as count FROM tasks WHERE status != "done"');
-    const contentCount = await this.db.get('SELECT COUNT(*) as count FROM content');
-    const upcoming = await this.db.get('SELECT COUNT(*) as count FROM tasks WHERE due_date = "Today" OR due_date = "Tomorrow"');
+  getStats() {
+    const activeTasks = this.data.tasks.filter(t => t.status !== 'done').length;
+    const contentCount = this.data.content.length;
+    const upcoming = this.data.tasks.filter(t => t.due_date === 'Today' || t.due_date === 'Tomorrow').length;
     
     return {
-      activeTasks: taskCount.count,
-      contentPipeline: `${contentCount.count} items`,
-      upcoming48h: upcoming.count,
+      activeTasks,
+      contentPipeline: `${contentCount} items`,
+      upcoming48h: upcoming,
       agentActivity: 'High'
     };
   }
