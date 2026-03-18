@@ -1,194 +1,90 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-/* Julz & Monday Color System */
-:root {
-  /* Backgrounds */
-  --bg-primary: #0a0a0a;
-  --bg-secondary: #141414;
-  --bg-card: #1a1a1a;
-  --bg-hover: #252525;
-  
-  /* Text */
-  --text-primary: #f5f5f0;
-  --text-secondary: #a3a3a3;
-  --text-muted: #737373;
-  
-  /* Accents - Monday's Navy */
-  --accent-primary: #1e3a5f;
-  --accent-hover: #254670;
-  --accent-light: #2d4a6f;
-  
-  /* Highlights - Warm Amber/Coffee */
-  --highlight: #d4a574;
-  --highlight-soft: #c49a6c;
-  --coffee: #8b6f47;
-  
-  /* Status Colors */
-  --success: #22c55e;
-  --warning: #f59e0b;
-  --error: #ef4444;
-  --info: #3b82f6;
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    @apply bg-bg-primary text-text-primary antialiased;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  /* Scrollbar Styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-bg-secondary;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-bg-hover rounded;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-text-muted;
+  }
 }
 
-* {
-  box-sizing: border-box;
-}
+@layer components {
+  .card {
+    @apply bg-bg-card rounded-xl border border-[#262626] transition-all;
+  }
 
-body {
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+  .card:hover {
+    @apply border-[#333];
+  }
 
-/* Scrollbar Styling */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
+  .btn-primary {
+    @apply bg-accent-navy text-text-primary px-5 py-2.5 rounded-lg font-medium text-sm transition-all border-0 cursor-pointer;
+  }
 
-::-webkit-scrollbar-track {
-  background: var(--bg-secondary);
-}
+  .btn-primary:hover {
+    @apply bg-accent-navy-hover;
+  }
 
-::-webkit-scrollbar-thumb {
-  background: var(--bg-hover);
-  border-radius: 4px;
-}
+  .btn-secondary {
+    @apply bg-bg-hover text-text-primary px-5 py-2.5 rounded-lg font-medium text-sm transition-all border border-[#333] cursor-pointer;
+  }
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
-}
+  .btn-secondary:hover {
+    @apply bg-[#303030] border-[#404040];
+  }
 
-/* Card Component */
-.card {
-  background-color: var(--bg-card);
-  border-radius: 12px;
-  border: 1px solid #262626;
-  transition: all 0.2s ease;
-}
+  .badge {
+    @apply px-2.5 py-1 rounded-md text-xs font-medium uppercase tracking-wider;
+  }
 
-.card:hover {
-  border-color: #333;
-}
+  .badge-urgent {
+    @apply bg-red-500/15 text-red-500 border border-red-500/30;
+  }
 
-/* Button Primary - Navy */
-.btn-primary {
-  background-color: var(--accent-primary);
-  color: var(--text-primary);
-  padding: 0.625rem 1.25rem;
-  border-radius: 8px;
-  font-weight: 500;
-  font-size: 0.875rem;
-  transition: all 0.2s ease;
-  border: none;
-  cursor: pointer;
-}
+  .badge-high {
+    @apply bg-amber-500/15 text-amber-500 border border-amber-500/30;
+  }
 
-.btn-primary:hover {
-  background-color: var(--accent-hover);
-}
+  .badge-medium {
+    @apply bg-blue-500/15 text-blue-500 border border-blue-500/30;
+  }
 
-/* Button Secondary */
-.btn-secondary {
-  background-color: var(--bg-hover);
-  color: var(--text-primary);
-  padding: 0.625rem 1.25rem;
-  border-radius: 8px;
-  font-weight: 500;
-  font-size: 0.875rem;
-  transition: all 0.2s ease;
-  border: 1px solid #333;
-  cursor: pointer;
-}
+  .badge-low {
+    @apply bg-gray-500/15 text-text-secondary border border-gray-500/30;
+  }
 
-.btn-secondary:hover {
-  background-color: #303030;
-  border-color: #404040;
-}
+  input, select, textarea {
+    @apply bg-bg-secondary border border-[#333] rounded-lg px-3.5 py-2.5 text-text-primary text-sm transition-all;
+  }
 
-/* Status Indicators */
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
+  input:focus, select:focus, textarea:focus {
+    @apply outline-none border-accent-navy;
+  }
 
-.status-online {
-  background-color: var(--success);
-  box-shadow: 0 0 8px var(--success);
-}
-
-.status-busy {
-  background-color: var(--warning);
-}
-
-.status-offline {
-  background-color: var(--text-muted);
-}
-
-/* Priority Badges */
-.badge {
-  padding: 0.25rem 0.625rem;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
-}
-
-.badge-urgent {
-  background-color: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
-  border: 1px solid rgba(239, 68, 68, 0.3);
-}
-
-.badge-high {
-  background-color: rgba(245, 158, 11, 0.15);
-  color: #f59e0b;
-  border: 1px solid rgba(245, 158, 11, 0.3);
-}
-
-.badge-medium {
-  background-color: rgba(59, 130, 246, 0.15);
-  color: #3b82f6;
-  border: 1px solid rgba(59, 130, 246, 0.3);
-}
-
-.badge-low {
-  background-color: rgba(115, 115, 115, 0.15);
-  color: #a3a3a3;
-  border: 1px solid rgba(115, 115, 115, 0.3);
-}
-
-/* Amber Accent Text */
-.text-accent {
-  color: var(--highlight);
-}
-
-/* Navigation Active State */
-.nav-active {
-  background-color: var(--accent-primary);
-  color: var(--text-primary);
-}
-
-/* Input Styling */
-input, select, textarea {
-  background-color: var(--bg-secondary);
-  border: 1px solid #333;
-  border-radius: 8px;
-  padding: 0.625rem 0.875rem;
-  color: var(--text-primary);
-  font-size: 0.875rem;
-  transition: all 0.2s ease;
-}
-
-input:focus, select:focus, textarea:focus {
-  outline: none;
-  border-color: var(--accent-primary);
-}
-
-input::placeholder, textarea::placeholder {
-  color: var(--text-muted);
+  input::placeholder, textarea::placeholder {
+    @apply text-text-muted;
+  }
 }
