@@ -1,67 +1,194 @@
 @import "tailwindcss";
 
+/* Julz & Monday Color System */
 :root {
-  --julz-black: #1a1a1a;
-  --julz-dark: #2d2d2d;
-  --julz-cream: #f5f5f0;
-  --julz-coffee: #8b6f47;
-  --monday-navy: #1e3a5f;
-  --monday-cream: #faf9f6;
-  --monday-amber: #d4a574;
-  --accent-blue: #3b82f6;
-  --accent-green: #10b981;
-  --accent-purple: #8b5cf6;
-  --accent-red: #ef4444;
-  --accent-yellow: #f59e0b;
-  --accent-gray: #6b7280;
+  /* Backgrounds */
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #141414;
+  --bg-card: #1a1a1a;
+  --bg-hover: #252525;
+  
+  /* Text */
+  --text-primary: #f5f5f0;
+  --text-secondary: #a3a3a3;
+  --text-muted: #737373;
+  
+  /* Accents - Monday's Navy */
+  --accent-primary: #1e3a5f;
+  --accent-hover: #254670;
+  --accent-light: #2d4a6f;
+  
+  /* Highlights - Warm Amber/Coffee */
+  --highlight: #d4a574;
+  --highlight-soft: #c49a6c;
+  --coffee: #8b6f47;
+  
+  /* Status Colors */
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #3b82f6;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
-  background-color: var(--julz-black);
-  color: var(--julz-cream);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom utility classes */
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-hover);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Card Component */
 .card {
-  background-color: var(--julz-dark);
-  border-radius: 0.5rem;
-  padding: 1rem;
-  border: 1px solid #1f2937;
+  background-color: var(--bg-card);
+  border-radius: 12px;
+  border: 1px solid #262626;
+  transition: all 0.2s ease;
 }
 
+.card:hover {
+  border-color: #333;
+}
+
+/* Button Primary - Navy */
 .btn-primary {
-  background-color: var(--monday-navy);
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  transition: background-color 0.2s;
+  background-color: var(--accent-primary);
+  color: var(--text-primary);
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
 }
 
 .btn-primary:hover {
-  background-color: #1e40af;
+  background-color: var(--accent-hover);
 }
 
+/* Button Secondary */
 .btn-secondary {
-  background-color: var(--julz-dark);
-  color: var(--julz-cream);
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  border: 1px solid #374151;
-  transition: background-color 0.2s;
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  border: 1px solid #333;
+  cursor: pointer;
 }
 
 .btn-secondary:hover {
-  background-color: #374151;
+  background-color: #303030;
+  border-color: #404040;
 }
 
+/* Status Indicators */
 .status-dot {
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 9999px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
 }
 
-.status-active { background-color: var(--accent-green); }
-.status-pending { background-color: var(--accent-yellow); }
-.status-error { background-color: var(--accent-red); }
-.status-idle { background-color: var(--accent-gray); }
+.status-online {
+  background-color: var(--success);
+  box-shadow: 0 0 8px var(--success);
+}
+
+.status-busy {
+  background-color: var(--warning);
+}
+
+.status-offline {
+  background-color: var(--text-muted);
+}
+
+/* Priority Badges */
+.badge {
+  padding: 0.25rem 0.625rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.badge-urgent {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.badge-high {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.badge-medium {
+  background-color: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.badge-low {
+  background-color: rgba(115, 115, 115, 0.15);
+  color: #a3a3a3;
+  border: 1px solid rgba(115, 115, 115, 0.3);
+}
+
+/* Amber Accent Text */
+.text-accent {
+  color: var(--highlight);
+}
+
+/* Navigation Active State */
+.nav-active {
+  background-color: var(--accent-primary);
+  color: var(--text-primary);
+}
+
+/* Input Styling */
+input, select, textarea {
+  background-color: var(--bg-secondary);
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 0.625rem 0.875rem;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--text-muted);
+}
