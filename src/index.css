@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-julz-black text-julz-cream;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-julz-dark rounded-lg p-4 border border-gray-800;
+  }
+  
+  .btn-primary {
+    @apply bg-monday-navy hover:bg-blue-800 text-white px-4 py-2 rounded-lg transition-colors;
+  }
+  
+  .btn-secondary {
+    @apply bg-julz-dark hover:bg-gray-700 text-julz-cream px-4 py-2 rounded-lg transition-colors border border-gray-700;
+  }
+  
+  .status-dot {
+    @apply w-2 h-2 rounded-full;
+  }
+  
+  .status-active { @apply bg-accent-green; }
+  .status-pending { @apply bg-accent-yellow; }
+  .status-error { @apply bg-accent-red; }
+  .status-idle { @apply bg-accent-gray; }
+}
