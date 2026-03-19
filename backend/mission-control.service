@@ -1,0 +1,18 @@
+[Unit]
+Description=Mission Control Backend
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/.openclaw/workspace/mission-control/backend
+ExecStart=/usr/bin/node src/index.js
+Restart=on-failure
+RestartSec=10
+Environment=PORT=3001
+Environment=HOST=0.0.0.0
+Environment=CORS_ORIGINS=https://jbtdc24.github.io
+Environment=DATA_DIR=/root/.openclaw/workspace/mission-control/backend/data
+
+[Install]
+WantedBy=multi-user.target

@@ -9,7 +9,7 @@
 // 1. Environment variable: import.meta.env.VITE_API_URL
 // 2. Fallback to hardcoded value below
 
-const FALLBACK_API_URL = 'https://equation-excess-sheets-defeat.trycloudflare.com/api';
+const FALLBACK_API_URL = 'http://julz-mission.duckdns.org/api';  // Will upgrade to HTTPS once SSL is working
 
 // Get API URL from environment or fallback
 const getApiUrl = () => {
