@@ -89,13 +89,100 @@ app.put('/api/content/:id', async (req, res) => {
   res.json(item);
 });
 
+app.delete('/api/content/:id', async (req, res) => {
+  await db.deleteContent(req.params.id);
+  broadcast({ type: 'content', action: 'deleted', id: req.params.id });
+  res.json({ success: true });
+});
+
 // Cron jobs
 app.get('/api/cron-jobs', async (req, res) => {
   const jobs = await db.getCronJobs();
   res.json(jobs);
 });
 
-// Health check
+// Agents
+app.get('/api/agents', async (req, res) => {
+  const agents = await db.getAgents();
+  res.json(agents);
+});
+
+app.get('/api/agents/:id', async (req, res) => {
+  const agents = await db.getAgents();
+  const agent = agents.find(a => a.id == req.params.id);
+  if (agent) {
+    res.json(agent);
+  } else {
+    res.status(404).json({ error: 'Agent not found' });
+  }
+});
+
+app.post('/api/agents', async (req, res) => {
+  const agent = await db.addAgent(req.body);
+  broadcast({ type: 'agent', action: 'created', data: agent });
+  res.json(agent);
+});
+
+app.put('/api/agents/:id', async (req, res) => {
+  const agent = await db.updateAgent(req.params.id, req.body);
+  broadcast({ type: 'agent', action: 'updated', data: agent });
+  res.json(agent);
+});
+
+app.delete('/api/agents/:id', async (req, res) => {
+  await db.deleteAgent(req.params.id);
+  broadcast({ type: 'agent', action: 'deleted', id: req.params.id });
+  res.json({ success: true });
+});
+
+// Agent activity ping
+app.post('/api/agents/ping', async (req, res) => {
+  const { agentId } = req.body;
+  const agent = await db.updateAgentActivity(agentId || 1);
+  broadcast({ type: 'agent', action: 'activity', data: agent });
+  res.json(agent);
+});
+
+// Settings
+app.get('/api/settings', async (req, res) => {
+  const settings = await db.getSettings();
+  res.json(settings);
+});
+
+app.put('/api/settings', async (req, res) => {
+  const settings = await db.updateSettings(req.body);
+  broadcast({ type: 'settings', data: settings });
+  res.json(settings);
+});
+
+// Search
+app.get('/api/search', async (req, res) => {
+  const { q } = req.query;
+  if (!q) return res.json([]);
+  
+  const query = q.toLowerCase();
+  const [tasks, content, agents] = await Promise.all([
+    db.getTasks(),
+    db.getContent(),
+    db.getAgents(),
+  ]);
+  
+  const results = [
+    ...tasks.filter(t => t.title?.toLowerCase().includes(query)).map(t => ({ ...t, type: 'task' })),
+    ...content.filter(c => c.title?.toLowerCase().includes(query)).map(c => ({ ...c, type: 'content' })),
+    ...agents.filter(a => a.name?.toLowerCase().includes(query)).map(a => ({ ...a, type: 'agent' })),
+  ];
+  
+  res.json(results);
+});
+
+// Agent activity ping
+app.post('/api/agents/ping', async (req, res) => {
+  const { agentId } = req.body;
+  const agent = await db.updateAgentActivity(agentId || 1);
+  broadcast({ type: 'agent', action: 'activity', data: agent });
+  res.json(agent);
+});
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
 });

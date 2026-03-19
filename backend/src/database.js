@@ -36,6 +36,17 @@ const initialData = {
     { id: 3, name: 'Twitter Morning Post', schedule: '9:00 AM daily', status: 'active', last_run: 'Pending' },
     { id: 4, name: 'Higgsfield Reminder', schedule: 'April 1, 8:00 AM', status: 'scheduled', last_run: '-' },
   ],
+  agents: [
+    { id: 1, name: 'Monday', role: 'Personal Assistant', status: 'online', lastActive: new Date().toISOString(), avatar: 'M', color: '#1e3a5f', tasks: 12, completed: 89, description: 'Your guardian-archivist. Handles tasks, remembers everything, manages Twitter.' },
+    { id: 2, name: 'Tuesday', role: 'Content Creator', status: 'offline', lastActive: null, avatar: 'T', color: '#8b5cf6', tasks: 0, completed: 0, description: 'Specializes in video scripts and creative writing. Coming soon.' },
+    { id: 3, name: 'Wednesday', role: 'Research Analyst', status: 'offline', lastActive: null, avatar: 'W', color: '#22c55e', tasks: 0, completed: 0, description: 'Deep research on web3, gaming trends, and market analysis. Coming soon.' },
+    { id: 4, name: 'Thursday', role: 'Code Assistant', status: 'offline', lastActive: null, avatar: 'Th', color: '#f59e0b', tasks: 0, completed: 0, description: 'Vibe coding specialist. Builds apps and automations. Coming soon.' },
+  ],
+  settings: {
+    notifications: true,
+    autoSync: true,
+    darkMode: true,
+  },
 };
 
 export class Database {
@@ -146,9 +157,63 @@ export class Database {
     return null;
   }
 
+  deleteContent(id) {
+    this.data.content = this.data.content.filter(c => c.id != id);
+    this.save();
+  }
+
   // Cron Jobs
   getCronJobs() {
     return this.data.cronJobs;
+  }
+
+  // Agents
+  getAgents() {
+    return this.data.agents;
+  }
+
+  addAgent(agent) {
+    const newAgent = {
+      id: Date.now(),
+      ...agent,
+      created_at: new Date().toISOString(),
+    };
+    this.data.agents.push(newAgent);
+    this.save();
+    return newAgent;
+  }
+
+  updateAgent(id, updates) {
+    const index = this.data.agents.findIndex(a => a.id == id);
+    if (index !== -1) {
+      this.data.agents[index] = { ...this.data.agents[index], ...updates };
+      this.save();
+      return this.data.agents[index];
+    }
+    return null;
+  }
+
+  updateAgentActivity(agentId) {
+    return this.updateAgent(agentId, { 
+      lastActive: new Date().toISOString(),
+      status: 'online'
+    });
+  }
+
+  deleteAgent(id) {
+    this.data.agents = this.data.agents.filter(a => a.id != id);
+    this.save();
+  }
+
+  // Settings
+  getSettings() {
+    return this.data.settings;
+  }
+
+  updateSettings(updates) {
+    this.data.settings = { ...this.data.settings, ...updates };
+    this.save();
+    return this.data.settings;
   }
 
   // Stats
@@ -157,11 +222,32 @@ export class Database {
     const contentCount = this.data.content.length;
     const upcoming = this.data.tasks.filter(t => t.due_date === 'Today' || t.due_date === 'Tomorrow').length;
     
+    // Calculate actual agent activity based on lastActive timestamp
+    const monday = this.data.agents.find(a => a.name === 'Monday');
+    let agentStatus = 'Idle';
+    
+    if (monday && monday.lastActive) {
+      const lastActiveTime = new Date(monday.lastActive).getTime();
+      const now = Date.now();
+      const diffMinutes = (now - lastActiveTime) / 1000 / 60;
+      
+      if (diffMinutes < 2) {
+        agentStatus = 'Active now';
+      } else if (diffMinutes < 10) {
+        agentStatus = `Active ${Math.floor(diffMinutes)}m ago`;
+      } else if (diffMinutes < 60) {
+        agentStatus = 'Idle';
+      } else {
+        agentStatus = 'Offline';
+      }
+    }
+    
     return {
       activeTasks,
       contentPipeline: `${contentCount} items`,
       upcoming48h: upcoming,
-      agentActivity: 'High'
+      agentActivity: agentStatus,
+      lastActive: monday?.lastActive || null
     };
   }
 }
