@@ -15,7 +15,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 
-const API_URL = 'https://drawings-exhibit-meat-compound.trycloudflare.com/api';
+const API_URL = 'https://equation-excess-sheets-defeat.trycloudflare.com/api';
 
 const SettingItem = ({ icon: Icon, title, description, action, hasToggle, isEnabled, onToggle, status }) => (
   <div className="flex items-center justify-between py-4 border-b border-white/[0.04] last:border-0">

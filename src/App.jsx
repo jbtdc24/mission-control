@@ -326,7 +326,7 @@ function App() {
   // Ping activity when app is being used
   useEffect(() => {
     const pingActivity = () => {
-      fetch('https://drawings-exhibit-meat-compound.trycloudflare.com/api/agents/ping', {
+      fetch('https://equation-excess-sheets-defeat.trycloudflare.com/api/agents/ping', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ agentId: 1 }),
