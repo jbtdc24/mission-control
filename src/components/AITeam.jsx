@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { 
-  Bot, 
-  Sparkles, 
-  Plus, 
+import {
+  Bot,
+  Sparkles,
+  Plus,
   Settings,
   Activity,
   Clock,
@@ -15,15 +15,16 @@ import {
   Zap
 } from 'lucide-react';
 import { useAgents } from '../hooks/useApi';
+import { API_URL } from '../config/api';
 
 // Format relative time
 const getRelativeTime = (dateString) => {
   if (!dateString) return 'Never';
-  
+
   const date = new Date(dateString);
   const now = new Date();
   const diffSeconds = Math.floor((now - date) / 1000);
-  
+
   if (diffSeconds < 60) return 'Just now';
   if (diffSeconds < 3600) return `${Math.floor(diffSeconds / 60)}m ago`;
   if (diffSeconds < 86400) return `${Math.floor(diffSeconds / 3600)}h ago`;
@@ -33,11 +34,11 @@ const getRelativeTime = (dateString) => {
 // Get status based on lastActive
 const getAgentStatus = (lastActive) => {
   if (!lastActive) return { status: 'offline', label: 'Offline', color: 'bg-white/20' };
-  
+
   const lastActiveTime = new Date(lastActive).getTime();
   const now = Date.now();
   const diffMinutes = (now - lastActiveTime) / 1000 / 60;
-  
+
   if (diffMinutes < 2) {
     return { status: 'online', label: 'Active now', color: 'bg-green-400 animate-pulse' };
   } else if (diffMinutes < 10) {
@@ -52,14 +53,14 @@ const getAgentStatus = (lastActive) => {
 const AgentCard = ({ agent, onEdit, onDelete, onToggleStatus }) => {
   const [showMenu, setShowMenu] = useState(false);
   const agentStatus = getAgentStatus(agent.lastActive);
-  
+
   const isOnline = agentStatus.status === 'online';
   const isIdle = agentStatus.status === 'idle';
 
   return (
     <div className="group relative p-5 rounded-xl bg-[#161616] border border-white/[0.06] hover:border-white/[0.12] transition-all duration-300">
       <div className="flex items-start justify-between mb-4">
-        <div 
+        <div
           className="w-12 h-12 rounded-xl flex items-center justify-center text-lg font-semibold text-white relative"
           style={{ backgroundColor: agent.color }}
         >
@@ -76,15 +77,15 @@ const AgentCard = ({ agent, onEdit, onDelete, onToggleStatus }) => {
             <div className={`w-1.5 h-1.5 rounded-full ${agentStatus.color}`} />
             <span className="text-[10px] text-white/50 uppercase">{agentStatus.label}</span>
           </div>
-          
+
           <div className="relative">
-            <button 
+            <button
               onClick={() => setShowMenu(!showMenu)}
               className="p-1.5 rounded hover:bg-white/[0.1] opacity-0 group-hover:opacity-100 transition-opacity"
             >
               <MoreHorizontal className="w-4 h-4 text-white/40" />
             </button>
-            
+
             {showMenu && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
@@ -162,14 +163,14 @@ const AgentModal = ({ isOpen, onClose, agent, onSubmit }) => {
   };
 
   const colors = [
-    '#1e3a5f', '#8b5cf6', '#22c55e', '#f59e0b', 
+    '#1e3a5f', '#8b5cf6', '#22c55e', '#f59e0b',
     '#ef4444', '#3b82f6', '#ec4899', '#14b8a6'
   ];
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      
+
       <div className="relative w-full max-w-md rounded-xl bg-[#111] border border-white/[0.08] shadow-2xl overflow-hidden">
         <div className="px-6 py-4 border-b border-white/[0.06] flex items-center justify-between">
           <h3 className="text-sm font-semibold text-white">{agent ? 'Edit Agent' : 'New Agent'}</h3>
@@ -249,13 +250,13 @@ const AITeam = () => {
   const { agents, addAgent, updateAgent, deleteAgent } = useAgents();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAgent, setEditingAgent] = useState(null);
-  
+
   // Calculate stats
   const activeAgents = agents.filter(a => {
     const status = getAgentStatus(a.lastActive);
     return status.status === 'online' || status.status === 'idle';
   }).length;
-  
+
   const totalTasks = agents.reduce((sum, a) => sum + (a.tasks || 0), 0);
   const totalCompleted = agents.reduce((sum, a) => sum + (a.completed || 0), 0);
 
@@ -284,7 +285,7 @@ const AITeam = () => {
 
   const handleToggleStatus = (agent) => {
     const newStatus = agent.status === 'online' ? 'offline' : 'online';
-    updateAgent(agent.id, { 
+    updateAgent(agent.id, {
       status: newStatus,
       lastActive: newStatus === 'online' ? new Date().toISOString() : null
     });
@@ -293,7 +294,7 @@ const AITeam = () => {
   // Ping activity when this page is viewed
   useEffect(() => {
     const pingActivity = () => {
-      fetch('https://equation-excess-sheets-defeat.trycloudflare.com/api/agents/ping', {
+      fetch(`${API_URL}/agents/ping`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ agentId: 1 })
@@ -331,8 +332,8 @@ const AITeam = () => {
       <div className="p-4 lg:p-8">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
           {agents.map((agent) => (
-            <AgentCard 
-              key={agent.id} 
+            <AgentCard
+              key={agent.id}
               agent={agent}
               onEdit={handleEdit}
               onDelete={deleteAgent}

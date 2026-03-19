@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-
-const API_URL = 'https://equation-excess-sheets-defeat.trycloudflare.com/api';
+import { API_URL, getWebSocketUrl } from '../config/api';
 
 // WebSocket connection for real-time updates
 let ws = null;
@@ -10,7 +9,7 @@ function connectWebSocket() {
   if (ws?.readyState === WebSocket.OPEN) return;
   
   try {
-    const wsUrl = API_URL.replace('https://', 'wss://').replace('/api', '');
+    const wsUrl = getWebSocketUrl();
     ws = new WebSocket(wsUrl);
     
     ws.onmessage = (event) => {

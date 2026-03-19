@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { 
-  Bell, 
-  Shield, 
-  Database, 
+import {
+  Bell,
+  Shield,
+  Database,
   Palette,
   ChevronRight,
   ToggleLeft,
@@ -14,8 +14,7 @@ import {
   X,
   AlertCircle
 } from 'lucide-react';
-
-const API_URL = 'https://equation-excess-sheets-defeat.trycloudflare.com/api';
+import { API_URL } from '../config/api';
 
 const SettingItem = ({ icon: Icon, title, description, action, hasToggle, isEnabled, onToggle, status }) => (
   <div className="flex items-center justify-between py-4 border-b border-white/[0.04] last:border-0">
@@ -23,7 +22,7 @@ const SettingItem = ({ icon: Icon, title, description, action, hasToggle, isEnab
       <div className="p-2 rounded-lg bg-white/[0.05]">
         <Icon className="w-4 h-4 text-white/50" />
       </div>
-      
+
       <div>
         <h4 className="text-sm font-medium text-white">{title}</h4>
         <p className="text-xs text-white/40 mt-0.5">{description}</p>
@@ -36,9 +35,9 @@ const SettingItem = ({ icon: Icon, title, description, action, hasToggle, isEnab
           {status}
         </span>
       )}
-      
+
       {hasToggle ? (
-        <button 
+        <button
           onClick={onToggle}
           className={`p-1 rounded-full transition-colors ${isEnabled ? 'text-green-400' : 'text-white/20'}`}
         >
@@ -87,7 +86,7 @@ const SettingsView = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newSettings),
       });
-      
+
       if (res.ok) {
         const data = await res.json();
         setSettings(data);
@@ -113,7 +112,7 @@ const SettingsView = () => {
       exportDate: new Date().toISOString(),
       settings,
     };
-    
+
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -152,7 +151,7 @@ const SettingsView = () => {
         {/* Notifications */}
         <div className="mb-8">
           <h2 className="text-xs font-medium text-white/40 uppercase tracking-wider mb-4">Notifications</h2>
-          
+
           <div className="rounded-xl bg-[#111] border border-white/[0.06] px-5">
             <SettingItem
               icon={Bell}
@@ -168,7 +167,7 @@ const SettingsView = () => {
         {/* Data & Sync */}
         <div className="mb-8">
           <h2 className="text-xs font-medium text-white/40 uppercase tracking-wider mb-4">Data & Sync</h2>
-          
+
           <div className="rounded-xl bg-[#111] border border-white/[0.06] px-5">
             <SettingItem
               icon={RefreshCw}
@@ -178,8 +177,8 @@ const SettingsView = () => {
               isEnabled={settings.autoSync}
               onToggle={() => toggleSetting('autoSync')}
             />
-            
-            <div 
+
+            <div
               onClick={exportData}
               className="flex items-center justify-between py-4 border-b border-white/[0.04] last:border-0 cursor-pointer hover:bg-white/[0.02] -mx-5 px-5 transition-colors"
             >
@@ -187,7 +186,7 @@ const SettingsView = () => {
                 <div className="p-2 rounded-lg bg-white/[0.05]">
                   <Database className="w-4 h-4 text-white/50" />
                 </div>
-                
+
                 <div>
                   <h4 className="text-sm font-medium text-white">Export Data</h4>
                   <p className="text-xs text-white/40 mt-0.5">Download a backup of all your data</p>
@@ -204,8 +203,8 @@ const SettingsView = () => {
         {/* Appearance */}
         <div className="mb-8">
           <h2 className="text-xs font-medium text-white/40 uppercase tracking-wider mb-4">Appearance</h2>
-          
-          
+
+
           <div className="rounded-xl bg-[#111] border border-white/[0.06] px-5">
             <SettingItem
               icon={Palette}
@@ -221,7 +220,7 @@ const SettingsView = () => {
         {/* API Connections */}
         <div className="mb-8">
           <h2 className="text-xs font-medium text-white/40 uppercase tracking-wider mb-4">API Connections</h2>
-          
+
           <div className="rounded-xl bg-[#111] border border-white/[0.06] px-5">
             <SettingItem
               icon={Twitter}
@@ -229,7 +228,7 @@ const SettingsView = () => {
               description="Twitter automation and scheduling"
               status="Connected"
             />
-            
+
             <SettingItem
               icon={Github}
               title="GitHub API"
@@ -250,7 +249,7 @@ const SettingsView = () => {
               <p className="text-xs text-white/40">Version 1.0.0</p>
             </div>
           </div>
-          
+
           <p className="text-xs text-white/50">
             Built for Julz & Monday. Connected to live backend.
           </p>

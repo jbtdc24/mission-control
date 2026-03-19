@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: mission-control-backend
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: HOST
+        value: 0.0.0.0
+      - key: CORS_ORIGINS
+        value: https://jbtdc24.github.io
+      - key: DATA_DIR
+        value: /data
+    disk:
+      name: mission-control-data
+      mountPath: /data
+      sizeGB: 1

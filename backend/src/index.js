@@ -8,7 +8,26 @@ const app = express();
 const server = createServer(app);
 const wss = new WebSocketServer({ server });
 
-app.use(cors());
+// Configure CORS for production
+const allowedOrigins = process.env.CORS_ORIGINS 
+  ? process.env.CORS_ORIGINS.split(',') 
+  : ['http://localhost:5173', 'http://localhost:3000', 'https://jbtdc24.github.io'];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.some(allowed => origin.startsWith(allowed))) {
+      callback(null, true);
+    } else {
+      console.warn(`CORS blocked origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 const db = new Database();
@@ -176,20 +195,20 @@ app.get('/api/search', async (req, res) => {
   res.json(results);
 });
 
-// Agent activity ping
-app.post('/api/agents/ping', async (req, res) => {
-  const { agentId } = req.body;
-  const agent = await db.updateAgentActivity(agentId || 1);
-  broadcast({ type: 'agent', action: 'activity', data: agent });
-  res.json(agent);
-});
+// Health check endpoint for Railway/Render
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', time: new Date().toISOString() });
+  res.json({ 
+    status: 'ok', 
+    time: new Date().toISOString(),
+    uptime: process.uptime(),
+    version: process.env.npm_package_version || '1.0.0'
+  });
 });
 
 const PORT = process.env.PORT || 3001;
-server.listen(PORT, () => {
-  console.log(`Mission Control API running on port ${PORT}`);
+const HOST = process.env.HOST || '0.0.0.0';
+server.listen(PORT, HOST, () => {
+  console.log(`Mission Control API running on http://${HOST}:${PORT}`);
 });
 
 export { broadcast };

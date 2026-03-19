@@ -24,6 +24,7 @@ import AITeam from './components/AITeam';
 import Contacts from './components/Contacts';
 import SettingsView from './components/SettingsView';
 import { useSearch } from './hooks/useApi';
+import { API_URL } from './config/api';
 
 const navItems = [
   { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
@@ -326,7 +327,7 @@ function App() {
   // Ping activity when app is being used
   useEffect(() => {
     const pingActivity = () => {
-      fetch('https://equation-excess-sheets-defeat.trycloudflare.com/api/agents/ping', {
+      fetch(`${API_URL}/agents/ping`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ agentId: 1 }),
@@ -547,7 +548,7 @@ function App() {
         isOpen={newTaskOpen} 
         onClose={() => setNewTaskOpen(false)}
         onSubmit={(task) => {
-          fetch('https://dealers-dallas-cat-sing.trycloudflare.com/api/tasks', {
+          fetch(`${API_URL}/tasks`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(task)
