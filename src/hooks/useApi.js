@@ -2,6 +2,45 @@ import { useState, useEffect, useCallback } from 'react';
 
 const API_URL = 'https://dealers-dallas-cat-sing.trycloudflare.com/api';
 
+// WebSocket connection for real-time updates
+let ws = null;
+let wsListeners = [];
+
+function connectWebSocket() {
+  if (ws?.readyState === WebSocket.OPEN) return;
+  
+  try {
+    const wsUrl = API_URL.replace('https://', 'wss://').replace('/api', '');
+    ws = new WebSocket(wsUrl);
+    
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      wsListeners.forEach(cb => cb(data));
+    };
+    
+    ws.onclose = () => {
+      setTimeout(connectWebSocket, 3000);
+    };
+  } catch (err) {
+    console.error('WebSocket error:', err);
+  }
+}
+
+export function useWebSocket() {
+  useEffect(() => {
+    connectWebSocket();
+  }, []);
+  
+  const subscribe = useCallback((callback) => {
+    wsListeners.push(callback);
+    return () => {
+      wsListeners = wsListeners.filter(cb => cb !== callback);
+    };
+  }, []);
+  
+  return { subscribe };
+}
+
 export function useTasks() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,7 +59,6 @@ export function useTasks() {
 
   useEffect(() => {
     fetchTasks();
-    // Poll every 5 seconds for updates
     const interval = setInterval(fetchTasks, 5000);
     return () => clearInterval(interval);
   }, [fetchTasks]);
@@ -129,7 +167,12 @@ export function useContent() {
     return updated;
   };
 
-  return { content, addContent, updateContent, refresh: fetchContent };
+  const deleteContent = async (id) => {
+    await fetch(`${API_URL}/content/${id}`, { method: 'DELETE' });
+    setContent(prev => prev.filter(c => c.id !== id));
+  };
+
+  return { content, addContent, updateContent, deleteContent, refresh: fetchContent };
 }
 
 export function useStats() {
@@ -177,4 +220,96 @@ export function useCronJobs() {
   }, [fetchJobs]);
 
   return { jobs, refresh: fetchJobs };
+}
+
+export function useAgents() {
+  const [agents, setAgents] = useState([]);
+
+  const fetchAgents = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_URL}/agents`);
+      const data = await res.json();
+      setAgents(data);
+    } catch (err) {
+      console.error('Failed to fetch agents:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAgents();
+    const interval = setInterval(fetchAgents, 5000);
+    return () => clearInterval(interval);
+  }, [fetchAgents]);
+
+  const addAgent = async (agent) => {
+    const res = await fetch(`${API_URL}/agents`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(agent),
+    });
+    const newAgent = await res.json();
+    setAgents(prev => [...prev, newAgent]);
+    return newAgent;
+  };
+
+  const updateAgent = async (id, updates) => {
+    const res = await fetch(`${API_URL}/agents/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    });
+    const updated = await res.json();
+    setAgents(prev => prev.map(a => a.id === id ? updated : a));
+    return updated;
+  };
+
+  const deleteAgent = async (id) => {
+    await fetch(`${API_URL}/agents/${id}`, { method: 'DELETE' });
+    setAgents(prev => prev.filter(a => a.id !== id));
+  };
+
+  return { agents, addAgent, updateAgent, deleteAgent, refresh: fetchAgents };
+}
+
+export function useSearch() {
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const search = useCallback(async (query) => {
+    if (!query.trim()) {
+      setResults([]);
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      // Search across all data
+      const [tasksRes, contentRes, agentsRes] = await Promise.all([
+        fetch(`${API_URL}/tasks`),
+        fetch(`${API_URL}/content`),
+        fetch(`${API_URL}/agents`).catch(() => ({ json: () => [] })),
+      ]);
+      
+      const [tasks, content, agents] = await Promise.all([
+        tasksRes.json(),
+        contentRes.json(),
+        agentsRes.json(),
+      ]);
+      
+      const q = query.toLowerCase();
+      const searchResults = [
+        ...tasks.filter(t => t.title?.toLowerCase().includes(q)).map(t => ({ ...t, type: 'task' })),
+        ...content.filter(c => c.title?.toLowerCase().includes(q)).map(c => ({ ...c, type: 'content' })),
+        ...agents.filter(a => a.name?.toLowerCase().includes(q)).map(a => ({ ...a, type: 'agent' })),
+      ];
+      
+      setResults(searchResults);
+    } catch (err) {
+      console.error('Search failed:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return { results, loading, search };
 }

@@ -8,7 +8,9 @@ import {
   Tag,
   Clock,
   X,
-  ChevronDown
+  ChevronDown,
+  Trash2,
+  Edit3
 } from 'lucide-react';
 import { useTasks } from '../hooks/useApi';
 
@@ -26,85 +28,257 @@ const statusColumns = [
   { id: 'done', label: 'Done', color: 'bg-green-400' },
 ];
 
-const TaskCard = ({ task, onUpdate }) => {
-  const [isHovered, setIsHovered] = useState(false);
-
+// Task Context Menu
+const TaskContextMenu = ({ task, onClose, onEdit, onDelete }) => {
   return (
-    <div
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className="group p-4 rounded-lg bg-[#161616] border border-white/[0.06] hover:border-white/[0.12] hover:bg-[#1c1c1c] transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md"
-    >
-      {/* Header */}
-      <div className="flex items-start justify-between gap-2 mb-3">
-        <span className={`text-[10px] px-2 py-0.5 rounded-full border ${priorityConfig[task.priority].color}`}>
-          {priorityConfig[task.priority].label}
-        </span>
-        
-        <button className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-white/[0.1] transition-all">
-          <MoreHorizontal className="w-4 h-4 text-white/40" />
+    <>
+      <div className="fixed inset-0 z-40" onClick={onClose} />
+      <div className="absolute right-0 top-8 w-40 rounded-lg bg-[#1a1a1a] border border-white/[0.08] shadow-xl z-50 overflow-hidden">
+        <button
+          onClick={() => { onEdit(task); onClose(); }}
+          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-white/70 hover:bg-white/[0.05] hover:text-white transition-colors"
+        >
+          <Edit3 className="w-4 h-4" />
+          Edit
+        </button>
+        <div className="border-t border-white/[0.06]" />
+        <button
+          onClick={() => { onDelete(task.id); onClose(); }}
+          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+        >
+          <Trash2 className="w-4 h-4" />
+          Delete
         </button>
       </div>
+    </>
+  );
+};
 
-      {/* Title */}
-      <h4 className="text-sm font-medium text-white/90 mb-2 line-clamp-2">
-        {task.title}
-      </h4>
+// Edit Task Modal
+const EditTaskModal = ({ isOpen, onClose, task, onUpdate }) => {
+  const [editedTask, setEditedTask] = useState(task || {});
 
-      {/* Meta */}
-      <div className="flex items-center gap-3 text-xs text-white/40">
-        {task.due_date && (
-          <div className="flex items-center gap-1">
-            <Clock className="w-3 h-3" />
-            <span>{task.due_date}</span>
-          </div>
-        )}
-        
-        {task.project && (
-          <div className="flex items-center gap-1">
-            <Tag className="w-3 h-3" />
-            <span>{task.project}</span>
-          </div>
-        )}
-      </div>
+  if (!isOpen || !task) return null;
 
-      {/* Footer */}
-      <div className="mt-3 pt-3 border-t border-white/[0.04] flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-medium ${
-            task.assignee === 'Monday' 
-              ? 'bg-[#1e3a5f] text-[#d4a574]' 
-              : 'bg-white/10 text-white/70'
-          }`}>
-            {task.assignee[0]}
-          </div>
-          <span className="text-xs text-white/50">{task.assignee}</span>
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onUpdate(task.id, editedTask);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      
+      <div className="relative w-full max-w-md rounded-xl bg-[#111] border border-white/[0.08] shadow-2xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-white/[0.06] flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-white">Edit Task</h3>
+          <button onClick={onClose} className="p-1 rounded hover:bg-white/[0.1]">
+            <X className="w-4 h-4 text-white/50" />
+          </button>
         </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div>
+            <label className="block text-xs text-white/50 mb-1.5">Title</label>
+            <input
+              type="text"
+              value={editedTask.title || ''}
+              onChange={(e) => setEditedTask({ ...editedTask, title: e.target.value })}
+              className="input"
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs text-white/50 mb-1.5">Status</label>
+              <select
+                value={editedTask.status || 'todo'}
+                onChange={(e) => setEditedTask({ ...editedTask, status: e.target.value })}
+                className="input"
+              >
+                <option value="todo">To Do</option>
+                <option value="in-progress">In Progress</option>
+                <option value="review">Review</option>
+                <option value="done">Done</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs text-white/50 mb-1.5">Priority</label>
+              <select
+                value={editedTask.priority || 'medium'}
+                onChange={(e) => setEditedTask({ ...editedTask, priority: e.target.value })}
+                className="input"
+              >
+                <option value="urgent">Urgent</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs text-white/50 mb-1.5">Assignee</label>
+              <select
+                value={editedTask.assignee || 'Julz'}
+                onChange={(e) => setEditedTask({ ...editedTask, assignee: e.target.value })}
+                className="input"
+              >
+                <option value="Julz">Julz</option>
+                <option value="Monday">Monday</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs text-white/50 mb-1.5">Project</label>
+              <input
+                type="text"
+                value={editedTask.project || ''}
+                onChange={(e) => setEditedTask({ ...editedTask, project: e.target.value })}
+                className="input"
+              />
+            </div>
+          </div>
+
+          <div className="pt-4 flex gap-3">
+            <button type="button" onClick={onClose} className="btn btn-secondary flex-1">
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary flex-1">
+              Save Changes
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
 };
 
-const NewTaskModal = ({ isOpen, onClose, onSubmit }) => {
+const TaskCard = ({ task, onUpdate, onDelete }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDragStart = (e) => {
+    setIsDragging(true);
+    e.dataTransfer.setData('taskId', task.id.toString());
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+  };
+
+  return (
+    <>
+      <div
+        draggable
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => { setIsHovered(false); setShowMenu(false); }}
+        className={`group p-4 rounded-lg bg-[#161616] border border-white/[0.06] hover:border-white/[0.12] hover:bg-[#1c1c1c] transition-all duration-200 cursor-move shadow-sm hover:shadow-md ${
+          isDragging ? 'opacity-50 rotate-2' : ''
+        }`}
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between gap-2 mb-3">
+          <span className={`text-[10px] px-2 py-0.5 rounded-full border ${priorityConfig[task.priority].color}`}>
+            {priorityConfig[task.priority].label}
+          </span>
+          
+          <div className="relative">
+            <button 
+              onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }}
+              className={`p-1 rounded hover:bg-white/[0.1] transition-all ${showMenu ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+            >
+              <MoreHorizontal className="w-4 h-4 text-white/40" />
+            </button>
+            
+            {showMenu && (
+              <TaskContextMenu
+                task={task}
+                onClose={() => setShowMenu(false)}
+                onEdit={() => setIsEditing(true)}
+                onDelete={onDelete}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* Title */}
+        <h4 className="text-sm font-medium text-white/90 mb-2 line-clamp-2">
+          {task.title}
+        </h4>
+
+        {/* Meta */}
+        <div className="flex items-center gap-3 text-xs text-white/40">
+          {task.due_date && (
+            <div className="flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              <span>{task.due_date}</span>
+            </div>
+          )}
+          
+          {task.project && (
+            <div className="flex items-center gap-1">
+              <Tag className="w-3 h-3" />
+              <span>{task.project}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="mt-3 pt-3 border-t border-white/[0.04] flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-medium ${
+              task.assignee === 'Monday' 
+                ? 'bg-[#1e3a5f] text-[#d4a574]' 
+                : 'bg-white/10 text-white/70'
+            }`}>
+              {task.assignee[0]}
+            </div>
+            <span className="text-xs text-white/50">{task.assignee}</span>
+          </div>
+        </div>
+      </div>
+
+      <EditTaskModal
+        isOpen={isEditing}
+        onClose={() => setIsEditing(false)}
+        task={task}
+        onUpdate={onUpdate}
+      />
+    </>
+  );
+};
+
+const NewTaskModal = ({ isOpen, onClose, onSubmit, initialStatus = 'todo' }) => {
   const [task, setTask] = useState({
     title: '',
     assignee: 'Julz',
     priority: 'medium',
     due_date: '',
     project: '',
+    status: initialStatus
   });
 
   if (!isOpen) return null;
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit({ ...task, status: 'todo' });
+    onSubmit({ ...task, status: initialStatus });
     onClose();
-    setTask({ title: '', assignee: 'Julz', priority: 'medium', due_date: '', project: '' });
+    setTask({ title: '', assignee: 'Julz', priority: 'medium', due_date: '', project: '', status: initialStatus });
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       
       <div className="relative w-full max-w-md rounded-xl bg-[#111] border border-white/[0.08] shadow-2xl overflow-hidden">
@@ -125,6 +299,7 @@ const NewTaskModal = ({ isOpen, onClose, onSubmit }) => {
               className="input"
               placeholder="What needs to be done?"
               autoFocus
+              required
             />
           </div>
 
@@ -195,13 +370,40 @@ const NewTaskModal = ({ isOpen, onClose, onSubmit }) => {
 };
 
 const TasksBoard = () => {
-  const { tasks, addTask } = useTasks();
+  const { tasks, addTask, updateTask, deleteTask } = useTasks();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newTaskColumn, setNewTaskColumn] = useState('todo');
   const [searchQuery, setSearchQuery] = useState('');
+  const [dragOverColumn, setDragOverColumn] = useState(null);
 
   const filteredTasks = tasks.filter(task =>
     task.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleDragOver = (e, columnId) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverColumn(columnId);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverColumn(null);
+  };
+
+  const handleDrop = (e, columnId) => {
+    e.preventDefault();
+    setDragOverColumn(null);
+    
+    const taskId = e.dataTransfer.getData('taskId');
+    if (taskId) {
+      updateTask(parseInt(taskId), { status: columnId });
+    }
+  };
+
+  const openNewTaskModal = (columnId) => {
+    setNewTaskColumn(columnId);
+    setIsModalOpen(true);
+  };
 
   return (
     <div className="h-full flex flex-col">
@@ -231,7 +433,7 @@ const TasksBoard = () => {
             </button>
 
             <button 
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => openNewTaskModal('todo')}
               className="btn btn-primary"
             >
               <Plus className="w-4 h-4" />
@@ -246,9 +448,18 @@ const TasksBoard = () => {
         <div className="h-full flex gap-6 p-4 lg:p-8 min-w-max">
           {statusColumns.map((column) => {
             const columnTasks = filteredTasks.filter(t => t.status === column.id);
+            const isDragOver = dragOverColumn === column.id;
 
             return (
-              <div key={column.id} className="w-80 flex flex-col">
+              <div 
+                key={column.id} 
+                className={`w-80 flex flex-col transition-all duration-200 ${
+                  isDragOver ? 'scale-[1.02]' : ''
+                }`}
+                onDragOver={(e) => handleDragOver(e, column.id)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, column.id)}
+              >
                 {/* Column Header */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
@@ -259,23 +470,42 @@ const TasksBoard = () => {
                     </span>
                   </div>
 
-                  <button className="p-1 rounded hover:bg-white/[0.1] text-white/30">
+                  <button 
+                    onClick={() => openNewTaskModal(column.id)}
+                    className="p-1 rounded hover:bg-white/[0.1] text-white/30 hover:text-white/60 transition-colors"
+                  >
                     <Plus className="w-4 h-4" />
                   </button>
                 </div>
 
                 {/* Tasks */}
-                <div className="flex-1 overflow-y-auto space-y-3 pr-2">
+                <div 
+                  className={`flex-1 overflow-y-auto space-y-3 pr-2 rounded-lg transition-colors ${
+                    isDragOver ? 'bg-[#1e3a5f]/10 border-2 border-dashed border-[#1e3a5f]/30' : ''
+                  }`}
+                >
                   {columnTasks.map((task) => (
-                    <TaskCard key={task.id} task={task} />
+                    <TaskCard 
+                      key={task.id} 
+                      task={task} 
+                      onUpdate={updateTask}
+                      onDelete={deleteTask}
+                    />
                   ))}
 
-                  {columnTasks.length === 0 && (
+                  {columnTasks.length === 0 && !isDragOver && (
                     <div className="h-32 flex flex-col items-center justify-center text-white/20 border border-dashed border-white/[0.08] rounded-lg">
                       <div className="w-8 h-8 rounded-full bg-white/[0.03] flex items-center justify-center mb-2">
                         <Plus className="w-4 h-4" />
                       </div>
                       <p className="text-xs">No tasks</p>
+                      <p className="text-[10px] text-white/10 mt-1">Drag tasks here</p>
+                    </div>
+                  )}
+
+                  {isDragOver && columnTasks.length === 0 && (
+                    <div className="h-32 flex items-center justify-center text-[#d4a574]/50">
+                      <p className="text-sm">Drop here</p>
                     </div>
                   )}
                 </div>
@@ -289,6 +519,7 @@ const TasksBoard = () => {
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)}
         onSubmit={addTask}
+        initialStatus={newTaskColumn}
       />
     </div>
   );

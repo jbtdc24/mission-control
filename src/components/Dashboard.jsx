@@ -117,6 +117,21 @@ const Dashboard = () => {
 
   const urgentTasks = tasks.filter(t => t.priority === 'urgent' && t.status !== 'done').slice(0, 3);
 
+  // Determine agent status display
+  const getAgentStatusDisplay = () => {
+    const activityText = stats.agentActivity;
+    if (activityText === 'Active now') {
+      return { text: 'Active now', color: 'text-green-400', dot: 'bg-green-400' };
+    } else if (activityText?.includes('ago')) {
+      return { text: activityText, color: 'text-amber-400', dot: 'bg-amber-400' };
+    } else if (activityText === 'Idle') {
+      return { text: 'Idle', color: 'text-white/50', dot: 'bg-white/30' };
+    }
+    return { text: activityText || 'Offline', color: 'text-white/50', dot: 'bg-white/10' };
+  };
+
+  const agentStatus = getAgentStatusDisplay();
+
   return (
     <div className="p-4 lg:p-8 max-w-7xl mx-auto">
       {/* Header */}
@@ -197,13 +212,17 @@ const Dashboard = () => {
 
         {/* Sidebar Content */}
         <div className="space-y-6">
-          {/* Quick Stats */}
+          {/* System Status */}
           <div className="rounded-xl bg-gradient-to-br from-[#1e3a5f]/20 to-[#0a0a0a] border border-[#1e3a5f]/30 p-5">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              <span className="text-xs font-medium text-white/70">System Status</span>
+              <div className={`w-2 h-2 rounded-full ${agentStatus.dot} animate-pulse`} />
+              <span className="text-xs font-medium text-white/70">Monday Status</span>
             </div>
             <div className="space-y-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-white/50">Activity</span>
+                <span className={agentStatus.color}>{agentStatus.text}</span>
+              </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-white/50">Backend</span>
                 <span className="text-green-400">Online</span>
