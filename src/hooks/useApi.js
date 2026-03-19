@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const API_URL = 'https://dealers-dallas-cat-sing.trycloudflare.com/api';
+const API_URL = 'https://drawings-exhibit-meat-compound.trycloudflare.com/api';
 
 // WebSocket connection for real-time updates
 let ws = null;

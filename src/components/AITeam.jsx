@@ -293,7 +293,7 @@ const AITeam = () => {
   // Ping activity when this page is viewed
   useEffect(() => {
     const pingActivity = () => {
-      fetch('https://dealers-dallas-cat-sing.trycloudflare.com/api/agents/ping', {
+      fetch('https://drawings-exhibit-meat-compound.trycloudflare.com/api/agents/ping', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ agentId: 1 })
